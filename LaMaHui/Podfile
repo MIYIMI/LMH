@@ -1,0 +1,9 @@
+platform :ios, '6.0'
+pod 'AFNetworking'
+pod 'MBProgressHUD'
+pod 'SSPullToRefresh'
+pod 'Reachability'
+pod 'OpenUDID'
+pod 'SDWebImage'
+
+#pod 'dyci', :git => 'https://github.com/DyCI/dyci-main.git'

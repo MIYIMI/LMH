@@ -1,0 +1,31 @@
+//
+//  Prefix header
+//
+//  The contents of this file are implicitly included at the beginning of every source file.
+//
+
+#import <Availability.h>
+
+#ifndef __IPHONE_3_0
+#warning "This project uses features only available in iOS SDK 3.0 and later."
+#endif
+
+#ifdef __OBJC__
+    #import <UIKit/UIKit.h>
+    #import <Foundation/Foundation.h>
+    #import "LMH_Config.h"
+    #import "kata_GlobalConst.h"
+    #import "LMHUIManager.h"
+    #import "BDProgressHUD.h"
+//    #import <AlipaySDK/AlipaySDK.h>
+    #import "UIImageView+WebCache.h"
+    #import "KTProxy.h"
+#endif
+
+#define IOS_7 [[[UIDevice currentDevice] systemVersion] floatValue]>=7.0?YES:NO
+
+//系统设备相关参数宏定义
+#define W [[UIScreen mainScreen] bounds].size.width
+#define H [[UIScreen mainScreen] bounds].size.height
+
+#import "LMH_Config.h"

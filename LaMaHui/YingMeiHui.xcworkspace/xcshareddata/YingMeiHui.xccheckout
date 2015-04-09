@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>IDESourceControlProjectFavoriteDictionaryKey</key>
+	<false/>
+	<key>IDESourceControlProjectIdentifier</key>
+	<string>1323AE1E-3D49-4850-A60D-36B84374ED8B</string>
+	<key>IDESourceControlProjectName</key>
+	<string>YingMeiHui</string>
+	<key>IDESourceControlProjectOriginsDictionary</key>
+	<dict>
+		<key>ca610790-d9bd-44b7-bec0-25d03ce7ff46++6790</key>
+		<string>svn://192.168.0.253:9999/lmh_app/trunk/IOS/Proj</string>
+	</dict>
+	<key>IDESourceControlProjectPath</key>
+	<string>LMH_iPhone/trunk/LaMaHui/YingMeiHui.xcworkspace</string>
+	<key>IDESourceControlProjectRelativeInstallPathDictionary</key>
+	<dict>
+		<key>ca610790-d9bd-44b7-bec0-25d03ce7ff46++6790</key>
+		<string>../../../..</string>
+	</dict>
+	<key>IDESourceControlProjectRepositoryRootDictionary</key>
+	<dict>
+		<key>ca610790-d9bd-44b7-bec0-25d03ce7ff46++6790</key>
+		<string>svn://192.168.0.253:9999/lmh_app</string>
+	</dict>
+	<key>IDESourceControlProjectURL</key>
+	<string>svn://192.168.0.253:9999/lmh_app/trunk/IOS/Proj/LMH_iPhone/trunk/LaMaHui/YingMeiHui.xcworkspace</string>
+	<key>IDESourceControlProjectVersion</key>
+	<integer>111</integer>
+	<key>IDESourceControlProjectWCCIdentifier</key>
+	<string>ca610790-d9bd-44b7-bec0-25d03ce7ff46++6790</string>
+	<key>IDESourceControlProjectWCConfigurations</key>
+	<array>
+		<dict>
+			<key>IDESourceControlRepositoryExtensionIdentifierKey</key>
+			<string>public.vcs.subversion</string>
+			<key>IDESourceControlWCCIdentifierKey</key>
+			<string>ca610790-d9bd-44b7-bec0-25d03ce7ff46++6790</string>
+			<key>IDESourceControlWCCName</key>
+			<string>LMH_Project</string>
+		</dict>
+	</array>
+</dict>
+</plist>
