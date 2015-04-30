@@ -885,7 +885,7 @@
             [cell addSubview:lineView];
         }
     }
-    
+
     [cell.contentView setBackgroundColor:[UIColor whiteColor]];
     [cell.textLabel setBackgroundColor:[UIColor whiteColor]];
     [cell.textLabel setFont:[UIFont systemFontOfSize:14.0]];

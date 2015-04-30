@@ -46,8 +46,6 @@
     UIButton *_searchBtn;
     UIButton *_clearBtn;
     Loading *loading_two;
-    
-    NSMutableArray *idArray;
 }
 @end
 
@@ -80,8 +78,6 @@
         self.isLamahui = YES;
         
     }
-    
-    idArray = [NSMutableArray arrayWithCapacity:0];
     return self;
 }
 
@@ -238,7 +234,6 @@
                     NSUserDefaults *userDefaultes = [NSUserDefaults standardUserDefaults];
                     select = [userDefaultes integerForKey:@"myInteger"];
                     if (listVO.productlist) {
-                        [idArray addObjectsFromArray:listVO.productlist];
                         if (select == 1) {
                             NSMutableArray *cellDataArr_new = [[NSMutableArray alloc] init];
                             if (listVO.productlist.count > 0) {

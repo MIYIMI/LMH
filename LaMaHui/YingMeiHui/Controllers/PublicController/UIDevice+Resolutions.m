@@ -98,6 +98,7 @@ static DeviceModel *devModel = nil;
     }
     
     //获取机型
+    self.phoneType = platform;
     if ([platform isEqualToString:@"iPhone1,1"]) self.phoneType =  @"iPhone 2G (A1203)";
     if ([platform isEqualToString:@"iPhone1,2"]) self.phoneType =  @"iPhone 3G (A1241/A1324)";
     if ([platform isEqualToString:@"iPhone2,1"]) self.phoneType =  @"iPhone 3GS (A1303/A1325)";
@@ -183,63 +184,5 @@ static DeviceModel *devModel = nil;
             self.netType = @"NONE";
             break;
     }
-}
-
-- (void)locationJW{
-    //获取地理坐标
-    if (!_locationmanager) {
-        _locationmanager = [[CLLocationManager alloc]init];
-    }
-    
-    if([_locationmanager respondsToSelector:@selector(requestAlwaysAuthorization)]) {
-        [_locationmanager requestAlwaysAuthorization]; // 永久授权
-        [_locationmanager requestWhenInUseAuthorization]; //使用中授权
-    }
-
-    //设置定位的精度
-    _locationmanager.desiredAccuracy = kCLLocationAccuracyBest;
-    _locationmanager.distanceFilter = kCLDistanceFilterNone;
-    
-    //实现协议
-    _locationmanager.delegate = self;
-    //开始定位
-    [_locationmanager startUpdatingLocation];
-}
-
-#pragma mark CLLocationManager Delegate
-- (void)locationManager:(CLLocationManager *)manager didUpdateToLocation:(CLLocation *)newLocation fromLocation:(CLLocation *)oldLocation
-{
-    CLLocationCoordinate2D coordinate = newLocation.coordinate;
-    NSLog(@"输出当前的精度和纬度");
-    NSLog(@"精度：%f 纬度：%f",coordinate.latitude,coordinate.longitude);
-    //停止定位
-    [_locationmanager stopUpdatingLocation];
-}
-
-- (void)locationManager:(CLLocationManager *)manager didChangeAuthorizationStatus:(CLAuthorizationStatus)status {
-    switch (status) {
-        case kCLAuthorizationStatusNotDetermined:
-            if ([_locationmanager respondsToSelector:@selector(requestAlwaysAuthorization)]) {
-                [_locationmanager requestWhenInUseAuthorization];
-            }
-            break;
-        default:
-            break;
-    }
-}
-
-// 定位失败
-- (void)locationManager:(CLLocationManager *)manager didFailWithError:(NSError *)error
-{
-    /***********************************************************/
-    
-    // 用户未开启或不允许定位
-    if ([error code] == kCLErrorDenied)
-    {
-        [[[UIAlertView alloc] initWithTitle:@"温馨提醒" message:@"定位未打开,请打开定位服务" delegate:nil cancelButtonTitle:@"确定" otherButtonTitles:nil, nil] show];
-    }
-    
-    // 停止定位
-    [_locationmanager stopUpdatingLocation];
 }
 @end

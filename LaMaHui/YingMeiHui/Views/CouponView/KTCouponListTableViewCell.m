@@ -100,7 +100,7 @@
         
         //价格背景
         if (!_couponPriceBgView) {
-            _couponPriceBgView = [[UIImageView alloc] initWithFrame:CGRectMake(CGRectGetMaxX(_couponInfoBgView.frame) - 8, 3, (w - 20)/4 + 5, 84)];
+            _couponPriceBgView = [[UIImageView alloc] initWithFrame:CGRectMake(CGRectGetMaxX(_couponInfoBgView.frame) - 8, 5, (w - 20)/4 + 5, 80)];
             [self.contentView addSubview:_couponPriceBgView];
         }
         
@@ -147,12 +147,12 @@
         NSDateFormatter *formatter = [[NSDateFormatter alloc] init];
         [formatter setDateStyle:NSDateFormatterMediumStyle];
         [formatter setTimeStyle:NSDateFormatterShortStyle];
-        [formatter setDateFormat:@"YYYY-MM-dd"];
+        [formatter setDateFormat:@"YYYY.MM.dd"];
         NSDate *begin = [NSDate dateWithTimeIntervalSince1970:[_CouponData.begin_time longLongValue]];
         NSDate *end = [NSDate dateWithTimeIntervalSince1970:[_CouponData.end_time longLongValue]];
         NSString *beginTimespStr = [formatter stringFromDate:begin];
         NSString *endTimespStr = [formatter stringFromDate:end];
-        NSString *useDate = [NSString stringWithFormat:@"使用期限  %@ - %@", beginTimespStr, endTimespStr];
+        NSString *useDate = [NSString stringWithFormat:@"使用期限 %@-%@", beginTimespStr, endTimespStr];
         [_useDateLbl setText:useDate];
 
         //优惠券金额

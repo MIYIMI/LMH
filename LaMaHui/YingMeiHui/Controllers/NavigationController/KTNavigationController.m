@@ -34,7 +34,6 @@
                                 UITextAttributeFont:[UIFont boldSystemFontOfSize:18]};
         [self.navigationBar setTitleTextAttributes:attrs];
         
-        
         [self.navigationBar setBackgroundImage:[UIImage imageNamed:MAIN_NAV_BG_NAME] forBarMetrics:UIBarMetricsDefault];
         [self.navigationBar setShadowImage:[[UIImage alloc] init]];
         

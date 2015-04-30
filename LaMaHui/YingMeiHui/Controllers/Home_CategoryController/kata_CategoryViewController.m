@@ -1087,7 +1087,8 @@
             [cell setBackgroundColor:[UIColor clearColor]];
             
             UIActivityIndicatorView *activityIndicator = [[UIActivityIndicatorView alloc] initWithActivityIndicatorStyle:UIActivityIndicatorViewStyleGray];
-            activityIndicator.center = cell.center;
+//            activityIndicator.center = cell.center;
+            activityIndicator.frame = CGRectMake(ScreenW / 2 - 10, 5, 20, 20);
             activityIndicator.tag = 999;
             
             UILabel *emptyLbl = [[UILabel alloc] initWithFrame:CGRectMake(0, 0, ScreenW/2 +20, 30)];

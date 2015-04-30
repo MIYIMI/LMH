@@ -9,6 +9,12 @@
 #import "LMHHome_eightCircleCell.h"
 #import <UIButton+WebCache.h>
 
+@interface LMHHome_eightCircleCell(){
+    NSMutableArray *btnArray;
+}
+
+@end
+
 @implementation LMHHome_eightCircleCell
 {
     UIView *cellView;
@@ -22,7 +28,7 @@
 {
     self = [super initWithStyle:style reuseIdentifier:reuseIdentifier];
     if (self) {
-        
+        btnArray = [[NSMutableArray alloc] init];
     }
     
     return self;
@@ -45,21 +51,26 @@
         [cellView setBackgroundColor:[UIColor clearColor]];
         [self.contentView addSubview:cellView];
         
+        for (int i = 0; i < 8; i++) {
+            UIButton * Btn = [UIButton buttonWithType:UIButtonTypeCustom];
+            Btn.backgroundColor = [UIColor clearColor];
+            Btn.tag = 1000+i;
+            
+            [btnArray addObject:Btn];
+            
+            [Btn addTarget:self action:@selector(btnPressed:) forControlEvents:UIControlEventTouchUpInside];
+            [cellView addSubview:Btn];
+        }
     }else if (_eightCircleVO.category_list.count <= 0){
         cellView.frame = CGRectZero;
     }
     
     CGFloat picHeight = ScreenW/4*155/180;
     
-    for (UIButton *bview in cellView.subviews) {
-        if (bview.tag >= 1000) {
-            [bview removeFromSuperview];
-        }
-    }
     for (int i=0; i<_eightCircleVO.category_list.count; i++) {
         AdvVO *adv = _eightCircleVO.category_list[i];
         
-        UIButton * Btn = [UIButton buttonWithType:UIButtonTypeCustom];
+        UIButton * Btn = btnArray[i];
         //button设置网络图片
         [Btn sd_setBackgroundImageWithURL:[NSURL URLWithString:adv.Pic] forState:UIControlStateNormal placeholderImage:nil];
         Btn.backgroundColor = [UIColor clearColor];
@@ -70,10 +81,6 @@
         }else{
             [Btn setFrame:CGRectMake((i-4)*ScreenW/4, picHeight, ScreenW/4, picHeight)];
         }
-        
-        
-        [Btn addTarget:self action:@selector(btnPressed:) forControlEvents:UIControlEventTouchUpInside];
-        [cellView addSubview:Btn];
     }
 }
 

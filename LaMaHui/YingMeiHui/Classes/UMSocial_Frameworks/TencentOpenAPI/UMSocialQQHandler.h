@@ -10,7 +10,8 @@
 
 //#import <TencentOpenAPI/QQApiInterface.h>       //QQ互联 SDK
 //#import <TencentOpenAPI/TencentOAuth.h>
-#import "TencentOpenAPI.framework/Headers/TencentApiInterface.h"      //QQ互联 SDK
+
+#import "TencentOpenAPI.framework/Headers/QQApiInterface.h"
 #import "TencentOpenAPI.framework/Headers/TencentOAuth.h"
 
 @interface UMSocialQQHandler : NSObject

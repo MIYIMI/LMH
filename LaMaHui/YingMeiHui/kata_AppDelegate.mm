@@ -164,28 +164,31 @@
 }
 
 - (void)showRemindView{
-    remindView = [[UIView alloc] initWithFrame:CGRectMake(30, ScreenH/2-60, ScreenW - 60, 40)];
-    remindView.backgroundColor = RGBA(0, 0, 0, 0.6);
-    remindView.layer.cornerRadius = 20.0;
-    remindView.layer.masksToBounds = YES;
-    [self.window addSubview:remindView];
-    
-    UILabel*labelOne = [[UILabel alloc] init];
-    labelOne.frame = CGRectMake(15, 10 , CGRectGetWidth(remindView.frame) - 30, 20);
-    labelOne.layer.cornerRadius = 10;
-    labelOne.backgroundColor = [UIColor clearColor];
-    labelOne.text = @"hi 辣妈~还有5分钟秒杀就要开始啦！";
-    labelOne.textColor = [UIColor whiteColor];
-    labelOne.font = [UIFont systemFontOfSize:14];
-    labelOne.textAlignment = NSTextAlignmentCenter;
-    [remindView addSubview:labelOne];
+    if (!remindView) {
+        remindView = [[UIView alloc] initWithFrame:CGRectMake(30, ScreenH/2-60, ScreenW - 60, 40)];
+        remindView.backgroundColor = RGBA(0, 0, 0, 0.6);
+        remindView.layer.cornerRadius = 20.0;
+        remindView.layer.masksToBounds = YES;
+        [self.window addSubview:remindView];
+        
+        UILabel*labelOne = [[UILabel alloc] init];
+        labelOne.frame = CGRectMake(15, 10 , CGRectGetWidth(remindView.frame) - 30, 20);
+        labelOne.layer.cornerRadius = 10;
+        labelOne.backgroundColor = [UIColor clearColor];
+        labelOne.text = @"hi 辣妈~还有5分钟秒杀就要开始啦！";
+        labelOne.textColor = [UIColor whiteColor];
+        labelOne.font = [UIFont systemFontOfSize:14];
+        labelOne.textAlignment = NSTextAlignmentCenter;
+        [remindView addSubview:labelOne];
+    }
+    [remindView setHidden:NO];
     
     [self performSelector:@selector(removeRemindView) withObject:nil afterDelay:3.0];
 }
 
 - (void)removeRemindView
 {
-    [remindView removeFromSuperview];
+    [remindView setHidden:YES];
 }
 
 - (void)initRootView

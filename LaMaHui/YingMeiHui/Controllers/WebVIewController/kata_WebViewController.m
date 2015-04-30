@@ -66,7 +66,7 @@
     self = [super init];
     if (self) {
 //        NSString *srt = [NSString stringWithFormat:@"http://wap.lamahui.com/campaign/bxtest.html?%0.0f",[[NSDate date] timeIntervalSince1970]];
-        _url = [NSURL URLWithString:[NSString stringWithFormat:@"%@",url]];
+//        _url = [NSURL URLWithString:[NSString stringWithFormat:@"%@",url]];
         if ([type isEqualToString:@"lamahui"]) {
             _url = [NSURL URLWithString:[NSString stringWithFormat:@"%@?frm=ios_1200",url]];
         }

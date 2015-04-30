@@ -206,12 +206,10 @@ static NSString *const __kPasswordInfoFileName = @"C2AC0692D60AAC29";
 
 //缓存方法
 - (BOOL)updateHomeData:(NSDictionary *)homeData{
-    if (homeData) {
-        NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
-        NSData *encodedHomeData = [NSKeyedArchiver archivedDataWithRootObject:homeData];
-        [defaults setObject:encodedHomeData forKey:[NSString stringWithFormat:@"home_%@",[[[NSBundle mainBundle] infoDictionary] objectForKey:@"CFBundleShortVersionString"]]];
-        [defaults synchronize];
-    }
+    NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
+    NSData *encodedHomeData = [NSKeyedArchiver archivedDataWithRootObject:homeData];
+    [defaults setObject:encodedHomeData forKey:[NSString stringWithFormat:@"home_%@",[[[NSBundle mainBundle] infoDictionary] objectForKey:@"CFBundleShortVersionString"]]];
+    [defaults synchronize];
     
     return YES;
 }
@@ -222,12 +220,10 @@ static NSString *const __kPasswordInfoFileName = @"C2AC0692D60AAC29";
 }
 
 - (BOOL)updateMenuData:(NSDictionary *)menuData{
-    if (menuData) {
-        NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
-        NSData *encodedMenuData = [NSKeyedArchiver archivedDataWithRootObject:menuData];
-        [defaults setObject:encodedMenuData forKey:[NSString stringWithFormat:@"menu_%@",[[[NSBundle mainBundle] infoDictionary] objectForKey:@"CFBundleShortVersionString"]]];
-        [defaults synchronize];
-    }
+    NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
+    NSData *encodedMenuData = [NSKeyedArchiver archivedDataWithRootObject:menuData];
+    [defaults setObject:encodedMenuData forKey:[NSString stringWithFormat:@"menu_%@",[[[NSBundle mainBundle] infoDictionary] objectForKey:@"CFBundleShortVersionString"]]];
+    [defaults synchronize];
     
     return YES;
 }

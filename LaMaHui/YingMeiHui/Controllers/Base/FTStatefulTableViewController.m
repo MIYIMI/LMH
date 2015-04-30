@@ -680,7 +680,8 @@ static const NSInteger kLoadingCellTag = 257;
             [cell setBackgroundColor:GRAY_CELL_COLOR];
             
             UIActivityIndicatorView *activityIndicator = [[UIActivityIndicatorView alloc] initWithActivityIndicatorStyle:UIActivityIndicatorViewStyleGray];
-            activityIndicator.center = cell.center;
+//            activityIndicator.center = cell.center;
+            activityIndicator.frame = CGRectMake(ScreenW/2 - 10, 5, 20, 20);
             activityIndicator.tag = kLoadingCellTag;
             
             [cell addSubview:activityIndicator];

@@ -904,7 +904,7 @@
 		244E41A5EAE449439A40663B /* Project object */ = {
 			isa = PBXProject;
 			attributes = {
-				LastUpgradeCheck = 0620;
+				LastUpgradeCheck = 0630;
 			};
 			buildConfigurationList = 1FF86EE61B77461FB3449508 /* Build configuration list for PBXProject "Pods" */;
 			compatibilityVersion = "Xcode 3.2";
@@ -1091,7 +1091,7 @@
 		};
 		24F7ED8BAAA340FEA819024A /* Release */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = DF7AD4DF39354E978AD3D6BF /* Pods-MBProgressHUD-Private.xcconfig */;
+			baseConfigurationReference = A294D294B4564D61A5E89DFE /* Pods-MBProgressHUD.xcconfig */;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				COPY_PHASE_STRIP = YES;
@@ -1159,7 +1159,7 @@
 		};
 		49F954D670A94566B2CA19BE /* Release */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = 5324754A274A45BF8FC79FDB /* Pods-AFNetworking-Private.xcconfig */;
+			baseConfigurationReference = 803C2C61061048829E0458A1 /* Pods-AFNetworking.xcconfig */;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				COPY_PHASE_STRIP = YES;
@@ -1190,7 +1190,7 @@
 		};
 		6AC0D7CC12894781927F4FAB /* Debug */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = 99FB46AEFD70464D929F6CC1 /* Pods-OpenUDID-Private.xcconfig */;
+			baseConfigurationReference = 847B51F2765A4A50A8CE4CAA /* Pods-OpenUDID.xcconfig */;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				COPY_PHASE_STRIP = NO;
@@ -1219,7 +1219,7 @@
 		};
 		6EBA9FD94AC14B2897EC2294 /* Release */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = C8847A03E9F647598556E4D8 /* Pods-Reachability-Private.xcconfig */;
+			baseConfigurationReference = 67A946B2CE9E419BA809A4E0 /* Pods-Reachability.xcconfig */;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				COPY_PHASE_STRIP = YES;
@@ -1250,7 +1250,7 @@
 		};
 		7663685C56ED4B499C884992 /* Debug */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = 5324754A274A45BF8FC79FDB /* Pods-AFNetworking-Private.xcconfig */;
+			baseConfigurationReference = 803C2C61061048829E0458A1 /* Pods-AFNetworking.xcconfig */;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				COPY_PHASE_STRIP = NO;
@@ -1307,7 +1307,7 @@
 		};
 		7AFF92AD706C40C195C91E1A /* Release */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = CBB018814D8946AEADFC5A6A /* Pods-SSPullToRefresh-Private.xcconfig */;
+			baseConfigurationReference = 93F2DD4620A14903834C84D8 /* Pods-SSPullToRefresh.xcconfig */;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				COPY_PHASE_STRIP = YES;
@@ -1338,7 +1338,7 @@
 		};
 		A3CB40A6BA7E454B81A9F4E1 /* Release */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = 4F6AFFEEA5594D2180A4A1FA /* Pods-SDWebImage-Private.xcconfig */;
+			baseConfigurationReference = CDD7A0BBDDDB4118BC31CB53 /* Pods-SDWebImage.xcconfig */;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				COPY_PHASE_STRIP = YES;
@@ -1369,7 +1369,7 @@
 		};
 		A8D5A4DE587A41D08F1410BB /* Release */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = 99FB46AEFD70464D929F6CC1 /* Pods-OpenUDID-Private.xcconfig */;
+			baseConfigurationReference = 847B51F2765A4A50A8CE4CAA /* Pods-OpenUDID.xcconfig */;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				COPY_PHASE_STRIP = YES;
@@ -1400,7 +1400,7 @@
 		};
 		B3EC2A3ABE0C4A83BD29B5EB /* Debug */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = CBB018814D8946AEADFC5A6A /* Pods-SSPullToRefresh-Private.xcconfig */;
+			baseConfigurationReference = 93F2DD4620A14903834C84D8 /* Pods-SSPullToRefresh.xcconfig */;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				COPY_PHASE_STRIP = NO;
@@ -1429,7 +1429,7 @@
 		};
 		C82280E21E6F48F8814EEF80 /* Debug */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = DF7AD4DF39354E978AD3D6BF /* Pods-MBProgressHUD-Private.xcconfig */;
+			baseConfigurationReference = A294D294B4564D61A5E89DFE /* Pods-MBProgressHUD.xcconfig */;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				COPY_PHASE_STRIP = NO;
@@ -1458,7 +1458,7 @@
 		};
 		E15AE7FE11764A82A445B1E5 /* Debug */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = 4F6AFFEEA5594D2180A4A1FA /* Pods-SDWebImage-Private.xcconfig */;
+			baseConfigurationReference = CDD7A0BBDDDB4118BC31CB53 /* Pods-SDWebImage.xcconfig */;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				COPY_PHASE_STRIP = NO;
@@ -1519,7 +1519,7 @@
 		};
 		EE2ED3DB12D140FAA7C8B054 /* Debug */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = C8847A03E9F647598556E4D8 /* Pods-Reachability-Private.xcconfig */;
+			baseConfigurationReference = 67A946B2CE9E419BA809A4E0 /* Pods-Reachability.xcconfig */;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				COPY_PHASE_STRIP = NO;

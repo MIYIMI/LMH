@@ -434,7 +434,7 @@
         [timeImgView setImage:LOCAL_IMG(@"clock")];
         timeImgView.backgroundColor = [UIColor clearColor];
 //        [timeView addSubview:timeImgView];
-        endTimeLabel = [[UILabel alloc]initWithFrame:CGRectMake(20, 10, 100, 20)];
+        endTimeLabel = [[UILabel alloc]initWithFrame:CGRectMake(ScreenW - 300, 10, 100, 20)];
         endTimeLabel.backgroundColor = [UIColor clearColor];
         endTimeLabel.text = @"距本场结束时间";
         endTimeLabel.textAlignment = NSTextAlignmentRight;
@@ -693,8 +693,6 @@
                 labelTwo.textAlignment = NSTextAlignmentCenter;
                 [remindView addSubview:labelTwo];
                 
-//                UIApplication* app=[UIApplication sharedApplication];
-                
                 //推送代码
                 dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
                     //本地推送
@@ -703,19 +701,18 @@
                     if (notification != nil) {
                         notification.fireDate = pushDate;
                         notification.timeZone = [NSTimeZone defaultTimeZone];
-                        notification.repeatInterval = kCFCalendarUnitDay;
                         notification.soundName = UILocalNotificationDefaultSoundName;
                         notification.alertBody = @"hi 辣妈~还有5分钟秒杀就要开始啦!";
                         notification.applicationIconBadgeNumber = 1;
                         
                         NSUserDefaults *def = [NSUserDefaults standardUserDefaults];
                         NSNumber* key = [def objectForKey:[_modell.begin_at stringValue]];
-                        NSNumber* numcount = [NSNumber numberWithLongLong:0];
+                        NSNumber* numcount = [NSNumber numberWithLongLong:[key longLongValue]+1];
                         [def setObject:numcount forKey:[_modell.begin_at stringValue]];
                         [def synchronize];
                         
-                        if ([key longLongValue] <= 0) {
-                            NSDictionary *info = [[NSDictionary alloc] initWithObjectsAndKeys:numcount, [_modell.begin_at stringValue], nil];
+                        if ([key integerValue] <= 0) {
+                            NSDictionary *info = [[NSDictionary alloc] initWithObjectsAndKeys:_modell.begin_at, @"time", nil];
                             notification.userInfo = info;
                             [[UIApplication sharedApplication] scheduleLocalNotification:notification];
                         }
@@ -729,16 +726,14 @@
                 NSNumber* keys = [def objectForKey:[_modell.begin_at stringValue]];
                 NSNumber* numcount = [NSNumber numberWithLongLong:[keys longLongValue]-1];
                 [def setObject:numcount forKey:[_modell.begin_at stringValue]];
+                [def synchronize];
                 
-                for (UILocalNotification* notif in [app scheduledLocalNotifications]) {
+                NSArray *locArray = [app scheduledLocalNotifications];
+                for (int i = 0; i < locArray.count; i++) {
+                    UILocalNotification* notif  = locArray[i];
                     NSDictionary* dic = notif.userInfo;
-                    NSLog(@"%@",dic);
-                    if (dic) {
-                        NSNumber* key = [dic objectForKey:[_modell.begin_at stringValue]];
-                        if ([key longLongValue] >= 0){
-                            //取消推送 （指定一个取消）
-                            [app cancelLocalNotification:notif];
-                        }  
+                    if ([[dic objectForKey:@"time"] longLongValue] == [_modell.begin_at longLongValue] && [numcount integerValue] <= 0) {
+                        [app cancelLocalNotification:notif];
                     }
                 }
             }

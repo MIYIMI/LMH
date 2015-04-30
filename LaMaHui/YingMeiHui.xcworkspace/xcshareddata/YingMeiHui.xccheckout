@@ -10,34 +10,34 @@
 	<string>YingMeiHui</string>
 	<key>IDESourceControlProjectOriginsDictionary</key>
 	<dict>
-		<key>ca610790-d9bd-44b7-bec0-25d03ce7ff46++6790</key>
-		<string>svn://192.168.0.253:9999/lmh_app/trunk/IOS/Proj</string>
+		<key>ca610790-d9bd-44b7-bec0-25d03ce7ff46++9555</key>
+		<string>svn://121.41.77.48:9999/lmh_app/trunk/IOS/Proj/LMH_iPhone</string>
 	</dict>
 	<key>IDESourceControlProjectPath</key>
-	<string>LMH_iPhone/trunk/LaMaHui/YingMeiHui.xcworkspace</string>
+	<string>trunk/LaMaHui/YingMeiHui.xcworkspace</string>
 	<key>IDESourceControlProjectRelativeInstallPathDictionary</key>
 	<dict>
-		<key>ca610790-d9bd-44b7-bec0-25d03ce7ff46++6790</key>
-		<string>../../../..</string>
+		<key>ca610790-d9bd-44b7-bec0-25d03ce7ff46++9555</key>
+		<string>../../..</string>
 	</dict>
 	<key>IDESourceControlProjectRepositoryRootDictionary</key>
 	<dict>
-		<key>ca610790-d9bd-44b7-bec0-25d03ce7ff46++6790</key>
-		<string>svn://192.168.0.253:9999/lmh_app</string>
+		<key>ca610790-d9bd-44b7-bec0-25d03ce7ff46++9555</key>
+		<string>svn://121.41.77.48:9999/lmh_app</string>
 	</dict>
 	<key>IDESourceControlProjectURL</key>
-	<string>svn://192.168.0.253:9999/lmh_app/trunk/IOS/Proj/LMH_iPhone/trunk/LaMaHui/YingMeiHui.xcworkspace</string>
+	<string>svn://121.41.77.48:9999/lmh_app/trunk/IOS/Proj/LMH_iPhone/trunk/LaMaHui/YingMeiHui.xcworkspace</string>
 	<key>IDESourceControlProjectVersion</key>
 	<integer>111</integer>
 	<key>IDESourceControlProjectWCCIdentifier</key>
-	<string>ca610790-d9bd-44b7-bec0-25d03ce7ff46++6790</string>
+	<string>ca610790-d9bd-44b7-bec0-25d03ce7ff46++9555</string>
 	<key>IDESourceControlProjectWCConfigurations</key>
 	<array>
 		<dict>
 			<key>IDESourceControlRepositoryExtensionIdentifierKey</key>
 			<string>public.vcs.subversion</string>
 			<key>IDESourceControlWCCIdentifierKey</key>
-			<string>ca610790-d9bd-44b7-bec0-25d03ce7ff46++6790</string>
+			<string>ca610790-d9bd-44b7-bec0-25d03ce7ff46++9555</string>
 			<key>IDESourceControlWCCName</key>
 			<string>LMH_Project</string>
 		</dict>
