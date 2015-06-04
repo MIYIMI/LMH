@@ -21,6 +21,9 @@
 #import "CartNumVO.h"
 #import "kata_AppDelegate.h"
 #import "kata_WebViewController.h"
+#import "LMHCartOperationsRequest.h"
+#import "DetailViewVO.h"
+#import "LMHChangeSKUOperations.h"
 
 #define HEADERHEIGHT            45
 #define FOOTERHEIGHT            45
@@ -46,6 +49,7 @@
     UIButton *_deleteBtn;
     UIButton *_favBtn;
     NSTimer *_cartNumTimer;
+    NSTimer *backTimer;
     UIButton *_cartMask;
     UITextField *_edittingTF;
     UIButton *toHomeBtn;
@@ -76,9 +80,23 @@
     BOOL is_loading;
     BOOL resetUpdate;
     BOOL stockFlag;
-    
     NSString *_taobaourl;
-    Loading *loading;
+    
+    UIButton *_rightBtn;
+    NSInteger _selectnum;
+    PopSkuView *popSkuTableView; //弹出 规格View
+    UIView *halfView;
+    ProductInfoVO *productDicts;
+    NSNumber *_productid;
+    NSNumber *_itemID;
+    NSString *_oldSkuid;
+    NSString *_sku_id;
+    NSMutableArray *_cartSkuArr;
+    NSInteger _colorid;
+    NSInteger _sizeid;
+    NSNumber *_skuQuantity;
+    
+    BOOL loadSku;//是否已经在加载商品规格列表
 }
 
 @end
@@ -159,6 +177,8 @@
         is_loading = YES;
         resetUpdate = NO;
         stockFlag = NO;
+        
+        loadSku = NO;
     }
     return self;
 }
@@ -168,7 +188,7 @@
     [super viewDidLoad];
     
     [self createUI];
-    self.navigationItem.title=@"我的购物车";
+    self.navigationItem.title=@"购物车";
 }
 
 - (void)viewWillAppear:(BOOL)animated
@@ -201,20 +221,63 @@
     }
 
     currentVC = YES;
+    
+    [_rightBtn setTitle:@"编辑" forState:UIControlStateNormal];
+    _selectnum = 1;
+    _rightBtn.selected = YES;
+    
+    //右按钮
+    if (!_rightBtn) {
+        _rightBtn = [UIButton buttonWithType:UIButtonTypeCustom];
+        _rightBtn.frame = CGRectMake(0, 0, 50, 30);
+        _rightBtn.backgroundColor = [UIColor clearColor];
+        [_rightBtn setTitle:@"编辑" forState:UIControlStateNormal];
+        _rightBtn.titleLabel.font = FONT(15);
+        _rightBtn.hidden = YES;
+        _rightBtn.selected = YES;   //默认的 selected 值为 no
+        [_rightBtn setTitleColor:LMH_COLOR_GRAY forState:UIControlStateNormal];
+        [_rightBtn addTarget:self action:@selector(rightBtnClick) forControlEvents:UIControlEventTouchUpInside];
+    }
+    UIBarButtonItem *rightBtnItem = [[UIBarButtonItem alloc]initWithCustomView:_rightBtn];
+    self.navigationItem.rightBarButtonItem = rightBtnItem;
+    
+    _cartSkuArr = [[NSMutableArray alloc]init];
+}
+
+/**
+ *  右 按钮点击事件
+ */
+- (void)rightBtnClick
+{
+    if (_rightBtn.selected) {
+        [_rightBtn setTitle:@"完成" forState:UIControlStateNormal];
+        _selectnum = 2;
+        _rightBtn.selected = NO;
+    }else{
+        [_rightBtn setTitle:@"编辑" forState:UIControlStateNormal];
+        _selectnum = 1;
+        _rightBtn.selected = YES;
+    }
+    
+    [self.tableView reloadData];
 }
 
 - (void)viewWillDisappear:(BOOL)animated
 {
     [super viewWillDisappear:animated];
     
+    //移除通知
     [[NSNotificationCenter defaultCenter] removeObserver:self];
     currentVC = NO;
+    
+    //关闭定时器
+    [backTimer invalidate];
+    backTimer = nil;
 }
 
 - (void)viewDidAppear:(BOOL)animated
 {
     [super viewDidAppear:animated];
-    [[(kata_AppDelegate *)[[UIApplication sharedApplication] delegate] deckController] setPanningMode:IIViewDeckNoPanning];
 }
 
 
@@ -229,6 +292,8 @@
     [[NSNotificationCenter defaultCenter] removeObserver:self name:UIKeyboardWillShowNotification object:nil];
     [[NSNotificationCenter defaultCenter] removeObserver:self name:UIKeyboardWillHideNotification object:nil];
     self.hidesBottomBarWhenPushed = NO;
+    
+    _huiview.hidden = YES;
 }
 
 - (void)createUI
@@ -285,7 +350,7 @@
 
     
     _shipFeeLbl = [[UILabel alloc] initWithFrame:CGRectMake(CGRectGetMinX(_headerTitleLbl.frame), CGRectGetMaxY(_headerTitleLbl.frame) + 3, 105, 15)];
-    [_shipFeeLbl setText:@"邮费0.00元"];
+    [_shipFeeLbl setText:@"运费:0.00元"];
     [_shipFeeLbl setFont:[UIFont systemFontOfSize:13.0]];
     [_shipFeeLbl setTextAlignment:NSTextAlignmentRight];
     [_shipFeeLbl setTextColor:[UIColor colorWithRed:0.55 green:0.55 blue:0.55 alpha:1]];
@@ -327,11 +392,11 @@
     
     UILabel *taobaoLbl = [[UILabel alloc] initWithFrame:CGRectMake(CGRectGetMaxX(taobaoImg.frame)+10, CGRectGetMinY(taobaoImg.frame), 150, 40)];
     taobaoLbl.numberOfLines = 0;
-    NSMutableAttributedString *str = [[NSMutableAttributedString alloc] initWithString:@"淘宝订单\n点击查看淘宝订单"];
-    [str addAttribute:NSForegroundColorAttributeName value:LMH_COLOR_ORANGE range:NSMakeRange(0,4)];
-    [str addAttribute:NSForegroundColorAttributeName value:LMH_COLOR_LIGHTGRAY range:NSMakeRange(4,9)];
-    [str addAttribute:NSFontAttributeName value:LMH_FONT_16 range:NSMakeRange(0, 4)];
-    [str addAttribute:NSFontAttributeName value:LMH_FONT_12 range:NSMakeRange(4, 9)];
+    NSMutableAttributedString *str = [[NSMutableAttributedString alloc] initWithString:@"淘宝购物车商品\n点击查看淘宝购物车商品"];
+    [str addAttribute:NSForegroundColorAttributeName value:LMH_COLOR_ORANGE range:NSMakeRange(0,7)];
+    [str addAttribute:NSForegroundColorAttributeName value:LMH_COLOR_LIGHTGRAY range:NSMakeRange(7,12)];
+    [str addAttribute:NSFontAttributeName value:LMH_FONT_16 range:NSMakeRange(0, 7)];
+    [str addAttribute:NSFontAttributeName value:LMH_FONT_12 range:NSMakeRange(7, 12)];
     taobaoLbl.attributedText = str;
     [_taobaoView addSubview:taobaoLbl];
     
@@ -340,7 +405,7 @@
     [_taobaoView addSubview:rightView];
     
     //汇特卖购物车
-    _huiview = [[UIView alloc] initWithFrame:CGRectMake(0, CGRectGetMaxY(_taobaoView.frame)+10, ScreenW, 50)];
+    _huiview = [[UIView alloc] initWithFrame:CGRectMake(0, CGRectGetMaxY(_taobaoView.frame)+10, ScreenW, 55)];
     [_huiview setBackgroundColor:[UIColor whiteColor]];
     
     UIImageView *huiImgView = [[UIImageView alloc] initWithFrame:CGRectMake(10, 5, 40, 40)];
@@ -349,18 +414,57 @@
     
     UILabel *huiLbl = [[UILabel alloc] initWithFrame:CGRectMake(CGRectGetMaxX(huiImgView.frame)+10, CGRectGetMinY(huiImgView.frame), 150, 40)];
     huiLbl.numberOfLines = 0;
-    NSMutableAttributedString *huistr = [[NSMutableAttributedString alloc] initWithString:@"汇特卖订单\n更懂辣妈的特卖网站"];
-    [huistr addAttribute:NSForegroundColorAttributeName value:LMH_COLOR_SKIN range:NSMakeRange(0,5)];
-    [huistr addAttribute:NSForegroundColorAttributeName value:LMH_COLOR_LIGHTGRAY range:NSMakeRange(5,10)];
-    [huistr addAttribute:NSFontAttributeName value:LMH_FONT_16 range:NSMakeRange(0, 5)];
-    [huistr addAttribute:NSFontAttributeName value:LMH_FONT_12 range:NSMakeRange(5, 10)];
+    NSMutableAttributedString *huistr = [[NSMutableAttributedString alloc] initWithString:@"汇特卖购物车商品\n专注高性价比母婴特卖"];
+    [huistr addAttribute:NSForegroundColorAttributeName value:LMH_COLOR_SKIN range:NSMakeRange(0,8)];
+    [huistr addAttribute:NSForegroundColorAttributeName value:LMH_COLOR_LIGHTGRAY range:NSMakeRange(8,11)];
+    [huistr addAttribute:NSFontAttributeName value:LMH_FONT_16 range:NSMakeRange(0, 8)];
+    [huistr addAttribute:NSFontAttributeName value:LMH_FONT_12 range:NSMakeRange(8, 11)];
     huiLbl.attributedText = huistr;
     [_huiview addSubview:huiLbl];
     [_huiview setHidden:YES];
     
+    UILabel *grayLbl = [[UILabel alloc] initWithFrame:CGRectMake(0, CGRectGetMaxY(huiLbl.frame)+5, ScreenW, 5)];
+    grayLbl.backgroundColor = LMH_COLOR_LIGHTLINE;
+    [_huiview addSubview:grayLbl];
+    
     discView = [[UIView alloc] init];
     [discView setBackgroundColor:[UIColor colorWithRed:0.95 green:0.95 blue:0.95 alpha:1]];
     [discView setHidden:YES];
+    
+    //弹出规格相关 底层 View
+    halfView = [[UIView alloc] initWithFrame:CGRectMake(0, 0, ScreenW, ScreenH)];
+    halfView.backgroundColor = [UIColor colorWithRed:0 green:0 blue:0 alpha:0.3];
+    [[(kata_AppDelegate *)[[UIApplication sharedApplication] delegate] window] addSubview:halfView];
+    
+    UITapGestureRecognizer *halfTap = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(popViewdiss:)];
+    [halfView addGestureRecognizer:halfTap];
+    [halfView setHidden:YES];
+    
+    popSkuTableView = [[PopSkuView alloc] initWithFrame:CGRectMake(0, ScreenH - ScreenH/3*2, ScreenW, ScreenH/3*2)];
+}
+
+/**
+ *  调用 尺码规格界面
+ */
+-(void)popSkuView
+{
+    [halfView addSubview:popSkuTableView];
+    [halfView setHidden:NO];
+    popSkuTableView._isShoppingCart = YES;
+    popSkuTableView._productVO = productDicts;
+    popSkuTableView._proid = _productid;
+    [popSkuTableView.skuTabeView reloadData];
+    popSkuTableView.popSkuViewDelegate = self;
+}
+/**
+ *  选择界面  消失
+ */
+-(void)popViewdiss:(UIView *)hiddenView
+{
+    if ([hiddenView isKindOfClass:[popSkuTableView class]]) {
+        [hiddenView removeFromSuperview];
+        [halfView setHidden:YES];
+    }
 }
 
 //跳转到淘宝购物车
@@ -375,8 +479,6 @@
 {
     UIView *view = [super emptyView];
     
-    CGFloat w = view.frame.size.width;
-    CGFloat h = view.center.y;
     [view setBackgroundColor:[UIColor colorWithRed:0.95 green:0.95 blue:0.95 alpha:1]];
     if ([self.view viewWithTag:1010]){
         [[self.view viewWithTag:1010] removeFromSuperview];
@@ -388,32 +490,21 @@
     }
     
     UIImageView *image = [[UIImageView alloc] initWithImage:[UIImage imageNamed:@"cart_empty_icon"]];
-    [image setFrame:CGRectMake((w - CGRectGetWidth(image.frame))/2-10, h - CGRectGetHeight(image.frame), CGRectGetWidth(image.frame), CGRectGetHeight(image.frame))];
+    [image setFrame:CGRectMake((ScreenW - CGRectGetWidth(image.frame))/2,  ScreenH/4, CGRectGetWidth(image.frame), CGRectGetHeight(image.frame))];
     [view addSubview:image];
     image.tag=1012;
     
-    UILabel *lbl = [[UILabel alloc] initWithFrame:CGRectMake(0, CGRectGetMaxY(image.frame)+10, w, 15)];
+    UILabel *lbl = [[UILabel alloc] initWithFrame:CGRectMake(0, CGRectGetMaxY(image.frame)+10, ScreenW, 15)];
     [lbl setBackgroundColor:[UIColor clearColor]];
     [lbl setTextAlignment:NSTextAlignmentCenter];
-    [lbl setTextColor:[UIColor colorWithRed:0.52 green:0.52 blue:0.52 alpha:1]];
-    [lbl setFont:[UIFont systemFontOfSize:14.0]];
+    [lbl setTextColor:LMH_COLOR_GRAY];
+    [lbl setFont:LMH_FONT_15];
     [lbl setText:@"购物车还是空的，挑选点宝贝吧"];
     [view addSubview:lbl];
     
     toHomeBtn = [UIButton buttonWithType:UIButtonTypeCustom];
-    [toHomeBtn setFrame:CGRectMake((w-w/3)/2, CGRectGetMaxY(lbl.frame)+20, w/3 , w/300 * 33)];
-//    [toHomeBtn.layer setMasksToBounds:YES];
-//    [toHomeBtn.layer setCornerRadius:6.0];
-    
-//    CGFloat top = 10; // 顶端盖高度
-//    CGFloat bottom = 10 ; // 底端盖高度
-//    CGFloat left = 20; // 左端盖宽度
-//    CGFloat right = 20; // 右端盖宽度
-//    UIEdgeInsets insets = UIEdgeInsetsMake(top, left, bottom, right);
-//    UIImage *aImage = [[UIImage imageNamed:@"return_home"] resizableImageWithCapInsets:insets resizingMode:UIImageResizingModeStretch];
-//    [toHomeBtn setBackgroundImage:aImage forState:UIControlStateNormal];
-//    [toHomeBtn setBackgroundImage:aImage forState:UIControlStateSelected];
-//    [toHomeBtn setBackgroundImage:aImage forState:UIControlStateHighlighted];
+    [toHomeBtn setFrame:CGRectMake((ScreenW-ScreenW/3)/2, CGRectGetMaxY(lbl.frame)+20, ScreenW/3 , ScreenW/8)];
+
     [toHomeBtn setTitle:@"去首页逛逛" forState:UIControlStateNormal];
     [toHomeBtn setTitleColor:LMH_COLOR_SKIN forState:UIControlStateNormal];
     [toHomeBtn addTarget:self action:@selector(toHomeBtnPressed) forControlEvents:UIControlEventTouchUpInside];
@@ -422,15 +513,6 @@
     toHomeBtn.layer.borderColor = LMH_COLOR_SKIN.CGColor;
     [toHomeBtn setTag:1010];
     
-    UILabel *toHomeLbl = [[UILabel alloc] initWithFrame:CGRectMake(0, 0, CGRectGetWidth(toHomeBtn.frame), CGRectGetHeight(toHomeBtn.frame))];
-    [toHomeLbl setTextColor:[UIColor whiteColor]];
-    [toHomeLbl setBackgroundColor:[UIColor colorWithRed:0.0 green:0.0 blue:0.0 alpha:0.0]];
-    [toHomeLbl setTextAlignment:NSTextAlignmentCenter];
-    [toHomeLbl setText:@"去首页逛逛"];
-    [toHomeLbl setFont:[UIFont fontWithName:@"Helvetica-BoldOblique" size:15]];
-    [toHomeLbl setTag:1011];
-    
-//    [toHomeBtn addSubview:toHomeLbl];
     [self.view addSubview:toHomeBtn];
     [self.view addSubview:_taobaoView];
 
@@ -440,24 +522,24 @@
 - (void)toHomeBtnPressed
 {
     if (self.isRoot) {
-        NSArray *viewControllers =[[[self.tabBarController childViewControllers] objectAtIndex:0] childViewControllers];
-        for (UIViewController *vc in viewControllers) {
-            if ([vc isKindOfClass:[KTChannelViewController class]]) {
-                [(KTChannelViewController *)vc selectedTabIndex:0];
-            }
-        }
+//        NSArray *viewControllers =[[[self.tabBarController childViewControllers] objectAtIndex:0] childViewControllers];
+//        for (UIViewController *vc in viewControllers) {
+//            if ([vc isKindOfClass:[KTChannelViewController class]]) {
+//                [(KTChannelViewController *)vc selectedTabIndex:0];
+//            }
+//        }
         self.tabBarController.selectedIndex=0;
     }else{
         [[kata_CartManager sharedCartManager] setGoToHomePage:YES];
         if (_isModal) {
             [self backBtnPressed];
         } else {
-            NSArray *viewControllers =[[[self.tabBarController childViewControllers] objectAtIndex:0] childViewControllers];
-            for (UIViewController *vc in viewControllers) {
-                if ([vc isKindOfClass:[KTChannelViewController class]]) {
-                    [(KTChannelViewController *)vc selectedTabIndex:0];
-                }
-            }
+//            NSArray *viewControllers =[[[self.tabBarController childViewControllers] objectAtIndex:0] childViewControllers];
+//            for (UIViewController *vc in viewControllers) {
+//                if ([vc isKindOfClass:[KTChannelViewController class]]) {
+//                    [(KTChannelViewController *)vc selectedTabIndex:0];
+//                }
+//            }
             [self.navigationController popToRootViewControllerAnimated:YES];
         }
     }
@@ -562,15 +644,6 @@
         return;
     }
     
-//    if (!stateHud) {
-//        stateHud = [[MBProgressHUD alloc] initWithView:self.contentView];
-//        stateHud.delegate = self;
-//        [self.contentView addSubview:stateHud];
-//    }
-//    stateHud.mode = MBProgressHUDModeIndeterminate;
-//    stateHud.labelFont = [UIFont systemFontOfSize:14.0f];
-//    [stateHud show:YES];
-    
     [self updateCartNumOperation];
 }
 
@@ -580,6 +653,7 @@
         //需检查是否已登录 如未登陆则弹出登陆界面
         if (![[kata_UserManager sharedUserManager] isLogin]) {
             [kata_LoginViewController showInViewController:self];
+            [self hideHUD];
             return;
         }
         resetUpdate = YES;
@@ -703,11 +777,15 @@
 //#pragma mark - stateful tableview datasource && stateful tableview delegate
 ////stateful表格的数据和委托
 ////////////////////////////////////////////////////////////////////////////////////
+
+#pragma mark -- 获取购物车数据
+
 - (KTBaseRequest *)request
 {
-    [self performSelectorOnMainThread:@selector(noGoodLayout) withObject:nil waitUntilDone:YES];
-    [_huiview setHidden:YES];
-    [discView setHidden:YES];
+    //开启状态栏动画
+//    [[UIApplication sharedApplication] setNetworkActivityIndicatorVisible:YES];
+    //关闭状态栏动画
+//    [[UIApplication sharedApplication] setNetworkActivityIndicatorVisible:NO];
     
     NSString *cartid = nil;
     NSString *userid = nil;
@@ -754,6 +832,11 @@
             if (nil != [respDict objectForKey:@"data"] && ![[respDict objectForKey:@"data"] isEqual:[NSNull null]] && [[respDict objectForKey:@"data"] isKindOfClass:[NSDictionary class]]) {
                 
                 NSDictionary *dataObj = (NSDictionary *)[respDict objectForKey:@"data"];
+                
+                if (![[dataObj objectForKey:@"count"] integerValue] == 0) {
+                    _rightBtn.hidden = NO;
+                }
+                
                 if ([[dataObj objectForKey:@"code"] integerValue] == 0) {
                     
                     CartGoodVO *dataObj = [CartGoodVO CartGoodVOWithDictionary:[respDict objectForKey:@"data"]];
@@ -825,6 +908,10 @@
                     }
                     is_loading = NO;
                     
+                    if(!backTimer){
+                        backTimer = [NSTimer scheduledTimerWithTimeInterval:1.0 target:self selector:@selector(cartTime) userInfo:nil repeats:YES];
+                    }
+                    
                     return dataArray;
                 } else {
                     if (![[kata_CartManager sharedCartManager] cartID] && ![[kata_UserManager sharedUserManager] isLogin]) {
@@ -867,6 +954,7 @@
 
 - (void)noGoodLayout
 {
+    [self hideHUD];
     [_cbBtn setEnabled:NO];
     [_cashBtn setEnabled:NO];
     [_footView setHidden:YES];
@@ -893,10 +981,9 @@
 - (void)calTotal:(NSArray *)goodArr
 {
     if ([_freightFee floatValue] > 0) {
-
-        [_shipFeeLbl performSelectorOnMainThread:@selector(setText:) withObject:[NSString stringWithFormat:@"邮费%0.2f元", [_freightFee floatValue]] waitUntilDone:YES];
+        [_shipFeeLbl performSelectorOnMainThread:@selector(setText:) withObject:[NSString stringWithFormat:@"运费:%0.2f元", [_freightFee floatValue]] waitUntilDone:YES];
     }else{
-       [_shipFeeLbl performSelectorOnMainThread:@selector(setText:) withObject:@"邮费0.00元" waitUntilDone:YES];
+       [_shipFeeLbl performSelectorOnMainThread:@selector(setText:) withObject:@"运费:0.00元" waitUntilDone:YES];
     }
     NSString *moneyStr = [NSString stringWithFormat:@"￥%0.2f",[_cartInfo.CartMoney floatValue]];
     [_headerPriceLbl performSelectorOnMainThread:@selector(setText:) withObject:moneyStr waitUntilDone:YES];
@@ -990,10 +1077,9 @@
             hight += (lblSize.height + 5);
         }
     }
-    [discView setFrame:CGRectMake(0, CGRectGetMaxY(_huiview.frame), ScreenW, hight)];
-//    [_headView addSubview:discView];
-//    [_headView setFrame:CGRectMake(0, 0, ScreenW, CGRectGetMaxY(_huiview.frame)+hight)];
-    [_headView setFrame:CGRectMake(0, 0, ScreenW, CGRectGetMaxY(_huiview.frame)+hight - 46)];
+//    [discView setFrame:CGRectMake(0, CGRectGetMaxY(_huiview.frame), ScreenW, hight)];
+    [_headView setFrame:CGRectMake(0, 0, ScreenW, CGRectGetMaxY(_huiview.frame)+0.5)];
+//    [_headView setFrame:CGRectMake(0, 0, ScreenW, CGRectGetMaxY(_huiview.frame)+hight - 46)];
     [self.tableView setTableHeaderView:_headView];
     [_footView setHidden:NO];
     [_headView setHidden:NO];
@@ -1002,7 +1088,9 @@
 #pragma mark - UpdateCartRequest
 - (void)updateCartOperation:(NSArray *)arr
 {
-    [self loadWithHud];
+    //开启状态栏动画
+    [[UIApplication sharedApplication] setNetworkActivityIndicatorVisible:YES];
+    
     [_cashBtn setEnabled:NO];
     [_cbBtn setEnabled:NO];
 
@@ -1010,20 +1098,12 @@
     NSString *userid = nil;
     NSString *usertoken = nil;
     
-    if ([[kata_CartManager sharedCartManager] hasCartID]) {
-        cartid = [[kata_CartManager sharedCartManager] cartID];
-    }
-    
     if ([[[kata_UserManager sharedUserManager] userInfo] objectForKey:@"user_id"] && [[[[kata_UserManager sharedUserManager] userInfo] objectForKey:@"user_id"] isKindOfClass:[NSString class]] && ![[[[kata_UserManager sharedUserManager] userInfo] objectForKey:@"user_id"] isEqualToString:@""]) {
         userid = [[[kata_UserManager sharedUserManager] userInfo] objectForKey:@"user_id"];
     }
     
     if ([[[kata_UserManager sharedUserManager] userInfo] objectForKey:@"user_token"] && [[[[kata_UserManager sharedUserManager] userInfo] objectForKey:@"user_token"] isKindOfClass:[NSString class]] && ![[[[kata_UserManager sharedUserManager] userInfo] objectForKey:@"user_token"] isEqualToString:@""]) {
         usertoken = [[[kata_UserManager sharedUserManager] userInfo] objectForKey:@"user_token"];
-    }
-    
-    if (userid && usertoken) {
-        cartid = nil;
     }
     
     NSMutableArray *productArr = [[NSMutableArray alloc] init];
@@ -1063,10 +1143,11 @@
                                            andSeckillID:-1];
     
     KTProxy *proxy = [KTProxy loadWithRequest:req completed:^(NSString *resp, NSStringEncoding encoding) {
-        
+        [self hideHUD];
         [self performSelectorOnMainThread:@selector(updateCartParseResponse:) withObject:resp waitUntilDone:YES];
     } failed:^(NSError *error) {
-        [self hideHUDView];
+        [self hideHUD];
+        [[UIApplication sharedApplication] setNetworkActivityIndicatorVisible:NO];
         [self performSelectorOnMainThread:@selector(cartStateHUD:) withObject:@"网络错误" waitUntilDone:YES];
     }];
     
@@ -1092,7 +1173,6 @@
                         _cartInfo = [CartInfo CartInfoWithDictionary:[dataObj objectForKey:@"cart"]];
                     }
                     [self cartInfoSuccess];
-                    
                 } else {
                     id messageObj = [dataObj objectForKey:@"msg"];
                     if (messageObj) {
@@ -1124,7 +1204,9 @@
         [self performSelectorOnMainThread:@selector(textStateHUD:) withObject:[hudPrefixStr stringByAppendingString:@"失败"] waitUntilDone:YES];
     }
     [_cashBtn setUserInteractionEnabled:YES];
-    [self hideHUDView];
+    [self hideHUD];
+    //关闭状态栏动画
+    [[UIApplication sharedApplication] setNetworkActivityIndicatorVisible:NO];
 }
 
 - (void)cartInfoSuccess
@@ -1174,15 +1256,15 @@
                                   otherButtonTitles:nil];
             [alert show];
             [_cashBtn setEnabled:YES];
-            [self hideHUDView];
         }
     }
-    [self hideHUDView];
 }
 
 #pragma mark - UpdatenumCartRequest
 - (void)updateCartNumOperation
 {
+    [self loadHUD];
+    
     NSString *cartid = nil;
     NSString *userid = nil;
     NSString *usertoken = nil;
@@ -1236,11 +1318,10 @@
         [self performSelectorOnMainThread:@selector(updateCartNumParseResponse:) withObject:resp waitUntilDone:YES];
         
     } failed:^(NSError *error) {
-        
         [self performSelectorOnMainThread:@selector(cartStateHUD:) withObject:@"网络错误" waitUntilDone:YES];
         [_cashBtn setEnabled:YES];
         [_cbBtn setEnabled:YES];
-        [self hideHUDView];
+        [self hideHUD];
     }];
     
     [proxy start];
@@ -1293,24 +1374,115 @@
     } else {
         [self performSelectorOnMainThread:@selector(textStateHUD:) withObject:[hudPrefixStr stringByAppendingString:@"失败"] waitUntilDone:YES];
     }
+    [self hideHUD];
     [_cashBtn setEnabled:YES];
     [_cbBtn setEnabled:YES];
 }
+#pragma mark - CartOperationsRequest
+/**
+ *  选择 options 按钮 点击
+ */
+- (void)CartOperationsRequest
+{
+    LMHCartOperationsRequest *req = [[LMHCartOperationsRequest alloc]init];
+    
+    NSString *userid = nil;
+    NSString *usertoken = nil;
 
+    if ([[[kata_UserManager sharedUserManager] userInfo] objectForKey:@"user_id"] && [[[[kata_UserManager sharedUserManager] userInfo] objectForKey:@"user_id"] isKindOfClass:[NSString class]] && ![[[[kata_UserManager sharedUserManager] userInfo] objectForKey:@"user_id"] isEqualToString:@""]) {
+        userid = [[[kata_UserManager sharedUserManager] userInfo] objectForKey:@"user_id"];
+    }
+
+    if ([[[kata_UserManager sharedUserManager] userInfo] objectForKey:@"user_token"] && [[[[kata_UserManager sharedUserManager] userInfo] objectForKey:@"user_token"] isKindOfClass:[NSString class]] && ![[[[kata_UserManager sharedUserManager] userInfo] objectForKey:@"user_token"] isEqualToString:@""]) {
+        usertoken = [[[kata_UserManager sharedUserManager] userInfo] objectForKey:@"user_token"];
+    }
+    
+    req = [[LMHCartOperationsRequest alloc]initWithUserID:[userid integerValue]
+                                             andUserToken:usertoken
+                                                  andType:@"goods_infor"
+                                              andGoods_id:_productid
+                                                andSku_id:_oldSkuid];
+    
+    KTProxy *proxy = [KTProxy loadWithRequest:req completed:^(NSString *resp, NSStringEncoding encoding) {
+        loadSku = NO;
+        [self performSelectorOnMainThread:@selector(CartOperationsResponse:) withObject:resp waitUntilDone:YES];
+    } failed:^(NSError *error) {
+        loadSku = NO;
+        [self performSelectorOnMainThread:@selector(textStateHUD:) withObject:@"网络错误" waitUntilDone:YES];
+    }];
+    
+    [proxy start];
+}
+
+- (void)CartOperationsResponse:(NSString *)resp
+{
+    NSString * hudPrefixStr = @"规格属性获取";
+    if (resp) {
+        NSData *respData = [resp dataUsingEncoding:NSUTF8StringEncoding allowLossyConversion:YES];
+        NSDictionary *respDict = [NSJSONSerialization JSONObjectWithData:respData options:NSJSONReadingMutableLeaves error:nil];
+        
+        NSString *statusStr = [respDict objectForKey:@"status"];
+        
+        if ([statusStr isEqualToString:@"OK"]) {
+            if (nil != [respDict objectForKey:@"data"] && ![[respDict objectForKey:@"data"] isEqual:[NSNull null]] && [[respDict objectForKey:@"data"] isKindOfClass:[NSDictionary class]]) {
+                
+                NSDictionary *dataObj = (NSDictionary *)[respDict objectForKey:@"data"];
+                if ([[dataObj objectForKey:@"code"] integerValue] == 0) {
+                    
+                    
+                    if ([dataObj isKindOfClass:[NSDictionary class]]) {
+                        DetailViewVO *vo = [DetailViewVO DetailViewVOWithDictionary:dataObj];
+                        
+                        [_cartSkuArr removeAllObjects];
+                        if (vo.productDict) {
+                            productDicts = vo.productDict;
+                            
+                            for (NSDictionary *cartsku in productDicts.cartSku) {
+                                [_cartSkuArr addObject:[cartsku objectForKey:@"sku_id"]];
+                            }
+                        }
+                    }
+                    
+                    halfView.hidden = NO;
+                    [self popSkuView];
+                    
+                    return;
+                } else {
+                    id messageObj = [dataObj objectForKey:@"msg"];
+                    if (messageObj) {
+                        if ([messageObj isKindOfClass:[NSString class]] && ![messageObj isEqualToString:@""]) {
+                            [self performSelectorOnMainThread:@selector(textStateHUD:) withObject:messageObj waitUntilDone:YES];
+                        } else {
+                            [self performSelectorOnMainThread:@selector(textStateHUD:) withObject:[hudPrefixStr stringByAppendingString:@"失败"] waitUntilDone:YES];
+                        }
+                    } else {
+                        [self performSelectorOnMainThread:@selector(textStateHUD:) withObject:[hudPrefixStr stringByAppendingString:@"失败"] waitUntilDone:YES];
+                    }
+                }
+            } else {
+                [self performSelectorOnMainThread:@selector(textStateHUD:) withObject:[hudPrefixStr stringByAppendingString:@"失败"] waitUntilDone:YES];
+            }
+        } else {
+            id messageObj = [respDict objectForKey:@"msg"];
+            if (messageObj) {
+                if ([messageObj isKindOfClass:[NSString class]] && ![messageObj isEqualToString:@""]) {
+                    [self performSelectorOnMainThread:@selector(textStateHUD:) withObject:messageObj waitUntilDone:YES];
+                } else {
+                    [self performSelectorOnMainThread:@selector(textStateHUD:) withObject:[hudPrefixStr stringByAppendingString:@"失败"] waitUntilDone:YES];
+                }
+            } else {
+                [self performSelectorOnMainThread:@selector(textStateHUD:) withObject:[hudPrefixStr stringByAppendingString:@"失败"] waitUntilDone:YES];
+            }
+        }
+    } else {
+        [self performSelectorOnMainThread:@selector(textStateHUD:) withObject:[hudPrefixStr stringByAppendingString:@"失败"] waitUntilDone:YES];
+    }
+}
 #pragma mark - DeleteCartRequest
 - (void)deleteCartOperation
 {
     [_cashBtn setEnabled:NO];
     [_cbBtn setEnabled:NO];
-    
-//    if (!stateHud) {
-//        stateHud = [[MBProgressHUD alloc] initWithView:self.contentView];
-//        stateHud.delegate = self;
-//        [self.contentView addSubview:stateHud];
-//    }
-//    stateHud.mode = MBProgressHUDModeIndeterminate;
-//    stateHud.labelFont = [UIFont systemFontOfSize:14.0f];
-//    [stateHud show:YES];
     
     NSString *cartid = nil;
     NSString *userid = nil;
@@ -1452,7 +1624,6 @@
     }
     [[kata_CartManager sharedCartManager] updateCartSku:array];
     
-    [self hideHUDView];
     [self calTotal:dataArray];
     [self updateCartOperation:dataArray];
     
@@ -1460,14 +1631,10 @@
         self.statefulState = FTStatefulTableViewControllerStateEmpty;
         [self.tableView.tableHeaderView  setHidden:YES];
         [self performSelectorOnMainThread:@selector(noGoodLayout) withObject:nil waitUntilDone:YES];
+        
+        //隐藏导航栏右按钮
+        _rightBtn.hidden = YES;
     }
-}
-
-- (void)hideHUDView
-{
-    [stateHud hide:YES afterDelay:0.3];
-    [loading stop];
-
 }
 
 #pragma mark -
@@ -1496,6 +1663,14 @@
     NSInteger section = indexPath.section;
     static NSString *CELL_IDENTIFI = @"CARTGOOD_CELL";
     static NSString *BRAND_IDENTIFI = @"CARTBRAND_CELL";
+    if (((NSArray *)dataArray[section]).count < row) {
+        UITableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:@"null"];
+        if (!cell) {
+            cell = [[KTShopCartTableViewCell alloc] initWithStyle:UITableViewCellStyleDefault reuseIdentifier:@"null" delegate:self];
+        }
+        
+        return cell;
+    }
     id vo = [dataArray[section] objectAtIndex:row];
     if ([vo isKindOfClass:[CartBrandVO class]]) {
         UITableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:CELL_IDENTIFI];
@@ -1519,6 +1694,7 @@
         }
         
         [(KTShopCartTableViewCell *)cell setCartCellDelegate:self];
+        [(KTShopCartTableViewCell *)cell setSelectNum:_selectnum];
         [(KTShopCartTableViewCell *)cell setDataVO:vo andSection:section];
         NSArray *arry = _selectedArr[section];
         [(KTShopCartTableViewCell *)cell setSelectState:[[arry objectAtIndex:row] boolValue]];
@@ -1539,6 +1715,12 @@
         if ([[dataArray[section] objectAtIndex:row] isKindOfClass:[CartBrandVO class]]) {
             return 35;
         }else{
+            if ([[dataArray[section] objectAtIndex:row] isKindOfClass:[CartProductVO class]]) {
+                CartProductVO *productVO = [dataArray[section] objectAtIndex:row];
+                if (productVO.discount_word.count > 0) {
+                    return 95;
+                }
+            }
             return 85;
         }
     }else{
@@ -1659,7 +1841,124 @@
         [_cartNumTimer invalidate];
     }
 }
+/**
+ *  Options 代理方法
+ */
+-(void)select_Color:(NSInteger)colorid select_Size:(NSInteger)sizeid total_Num:(NSInteger)qty andSku_id:(NSString *)sku_id
+{
+    //隐藏视图
+    [self performSelectorOnMainThread:@selector(popViewdiss:) withObject:popSkuTableView waitUntilDone:YES];
+    if (sku_id <= 0) {
+        return;
+    }
+    //判断是否更改商品
+    _sku_id = sku_id;
+    if (sku_id && ![_oldSkuid isEqualToString:sku_id]) {
+        [self changeSKUOptionsRequst];
+    }
+}
+#pragma mark -- 购物车修改options “确定”按钮 请求
+/**
+ *  确定 按钮 请求
+ */
+-(void)changeSKUOptionsRequst
+{
+    NSString *cartid = nil;
+    NSString *userid = nil;
+    NSString *usertoken = nil;
+    
+    if ([[kata_CartManager sharedCartManager] hasCartID]) {
+        cartid = [[kata_CartManager sharedCartManager] cartID];
+    }
+    
+    if ([[[kata_UserManager sharedUserManager] userInfo] objectForKey:@"user_id"] && [[[[kata_UserManager sharedUserManager] userInfo] objectForKey:@"user_id"] isKindOfClass:[NSString class]] && ![[[[kata_UserManager sharedUserManager] userInfo] objectForKey:@"user_id"] isEqualToString:@""]) {
+        userid = [[[kata_UserManager sharedUserManager] userInfo] objectForKey:@"user_id"];
+    }
+    
+    if ([[[kata_UserManager sharedUserManager] userInfo] objectForKey:@"user_token"] && [[[[kata_UserManager sharedUserManager] userInfo] objectForKey:@"user_token"] isKindOfClass:[NSString class]] && ![[[[kata_UserManager sharedUserManager] userInfo] objectForKey:@"user_token"] isEqualToString:@""]) {
+        usertoken = [[[kata_UserManager sharedUserManager] userInfo] objectForKey:@"user_token"];
+    }
+    
+    NSMutableDictionary *product = [NSMutableDictionary new];
+    if (_productid != [NSNumber numberWithInteger:-1]) {
+        [product setObject:_productid forKey:@"product_id"];
+    }
+    if ([_skuQuantity integerValue] != -1) {
+        [product setObject:_skuQuantity forKey:@"quantity"];
+    }
 
+    if (_sku_id) {
+        [product setObject:_sku_id forKey:@"product_sku"];
+    }
+    NSMutableArray *productArr = [[NSMutableArray alloc] init];
+    [productArr addObject:product];
+    
+    LMHChangeSKUOperations *req = [[LMHChangeSKUOperations alloc] initWithUserID:[userid integerValue]
+                                                                    andUserToken:usertoken
+                                                                         andType:@"add_goods_infor"
+                                                                       andItemID:_itemID
+                                                                     andOldSkuID:_oldSkuid
+                                                                      andProduct:productArr];
+    
+    KTProxy *proxy = [KTProxy loadWithRequest:req completed:^(NSString *resp, NSStringEncoding encoding) {
+        
+        [self performSelectorOnMainThread:@selector(changeSKUOptionsResponse:) withObject:resp waitUntilDone:YES];
+        
+    } failed:^(NSError *error) {
+        [self performSelectorOnMainThread:@selector(textStateHUD:) withObject:@"网络错误" waitUntilDone:YES];
+    }];
+    
+    [proxy start];
+}
+- (void)changeSKUOptionsResponse:(NSString *)resp
+{
+    NSString * hudPrefixStr = @"商品编辑";
+    if (resp) {
+        
+        NSData *respData = [resp dataUsingEncoding:NSUTF8StringEncoding allowLossyConversion:YES];
+        NSDictionary *respDict = [NSJSONSerialization JSONObjectWithData:respData options:NSJSONReadingMutableLeaves error:nil];
+        
+        NSString *statusStr = [respDict objectForKey:@"status"];
+        
+        if ([statusStr isEqualToString:@"OK"]) {
+            if (nil != [respDict objectForKey:@"data"] && ![[respDict objectForKey:@"data"] isEqual:[NSNull null]] && [[respDict objectForKey:@"data"] isKindOfClass:[NSDictionary class]]) {
+                
+                NSDictionary *dataObj = (NSDictionary *)[respDict objectForKey:@"data"];
+                if ([[dataObj objectForKey:@"code"] integerValue] == 0) {
+                    
+                    [self loadNewer];
+                    return;
+                }
+            }
+        }
+        
+    }
+    [self performSelectorOnMainThread:@selector(textStateHUD:) withObject:[hudPrefixStr stringByAppendingString:@"失败"] waitUntilDone:YES];
+}
+
+/**
+ *  尺码/颜色按钮点击事件
+ *
+ *  @param goodvo 对应的 model
+ */
+#pragma mark -- 尺码/颜色按钮点击事件
+- (void)clickSizeAndColorBtn:(CartProductVO *)goodvo
+{
+    _productid = goodvo.product_id;
+    _itemID = goodvo.item_id;
+    _oldSkuid = goodvo.sku;
+    _skuQuantity = goodvo.qty;
+    
+    if (!loadSku) {
+        loadSku = YES;
+        [self CartOperationsRequest];
+    }
+}
+/**
+ *  删除按钮点击事件
+ *
+ *  @param productvo 对应的 model
+ */
 - (void)pressDeleteAtCell:(CartProductVO *)productvo
 {
     _deleteItemID = productvo.item_id;
@@ -1714,23 +2013,20 @@
     }
 }
 
-- (void)loadWithHud
-{
-//    if (!stateHud) {
-//        stateHud = [[MBProgressHUD alloc] initWithView:self.contentView];
-//        stateHud.delegate = self;
-//        [self.contentView addSubview:stateHud];
-//    }
-//    stateHud.mode = MBProgressHUDModeIndeterminate;
-//    [stateHud show:YES];
-    if (!loading) {
-        loading = [[Loading alloc] initWithFrame:CGRectMake(0, 0, 180, 100) andName:[NSString stringWithFormat:@"loading.gif"]];
-        loading.center = self.contentView.center;
-        [loading.layer setCornerRadius:10.0];
-        [self.view addSubview:loading];
+//购物车时间倒计时
+- (void)cartTime{
+    for (NSArray *fisrtArray in dataArray) {
+        for (id vo in fisrtArray) {
+            if ([vo isKindOfClass:[CartBrandVO class]]) {
+                CartBrandVO *bvo = vo;
+                for (CartBrandDis *dvo in bvo.event_discount) {
+                    NSTimeInterval difftime = [dvo.discount_end_time longLongValue] - 1;
+                    dvo.discount_end_time = [NSNumber numberWithLongLong:difftime];
+                }
+            }
+        }
     }
-    [loading start];
+    [self.tableView reloadData];
 }
-
 
 @end

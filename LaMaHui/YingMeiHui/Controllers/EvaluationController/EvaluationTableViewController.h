@@ -12,6 +12,6 @@
 
 @interface EvaluationTableViewController : FTStatefulTableViewController<UIActionSheetDelegate, UINavigationControllerDelegate, UIImagePickerControllerDelegate>
 
-- (id)initWithOrderEventVO:(OrderEventVO *) eventVO;
+- (id)initWithOrderGoodsVO:(OrderGoodsVO *) goodsVO;
 
 @end

@@ -144,7 +144,7 @@
     if (is_Sidebar) {
         frame.origin.x = 100;
         frame.size.width -= 100;
-        _tabsView.backgroundColor = [UIColor colorWithPatternImage:[UIImage imageNamed:@"nav_bg_red"]];
+        _tabsView.layer.contents = (id) [UIImage imageNamed:@"nav_bg_red"].CGImage;
     }
     _tabsView.frame = frame;
     

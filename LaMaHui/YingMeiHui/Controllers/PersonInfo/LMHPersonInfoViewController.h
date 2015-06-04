@@ -8,7 +8,6 @@
 
 #import "FTBaseViewController.h"
 #include "kata_LoginViewController.h"
-#import "UpYun.h"
 #import "ChangeNickNameController.h"
 
 @interface LMHPersonInfoViewController : FTBaseViewController<UITableViewDataSource, UITableViewDelegate, UIAlertViewDelegate,LoginDelegate,UIImagePickerControllerDelegate,UIActionSheetDelegate,UINavigationControllerDelegate>

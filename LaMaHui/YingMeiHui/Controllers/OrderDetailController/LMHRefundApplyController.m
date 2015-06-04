@@ -15,7 +15,6 @@
 #import "kata_TextField.h"
 #import "ReturnOrderDetailVO.h"
 #import "kata_ReturnOrderDetailViewController.h"
-#import "UpYun.h"
 
 @interface LMHRefundApplyController ()<UIGestureRecognizerDelegate,UINavigationControllerDelegate,UINavigationBarDelegate,UIPickerViewDataSource,UIPickerViewDelegate,UITextFieldDelegate>
 {
@@ -32,6 +31,7 @@
     UITableView *_selectTableView;
     UIPickerView *pickView;
     UIToolbar *toolBar;
+    UIButton *submitBtn;
     
     NSArray *refundReasonArr;
     NSMutableArray *imageViewArr;
@@ -75,7 +75,7 @@
         _goodVO = goodVO;
         _type = type;
         
-        self.title = @"退款订单";
+        self.title = @"申请退款";
     }
     return self;
 }
@@ -143,7 +143,7 @@
     //订单编号
     UILabel *orderIdLabel = [[UILabel alloc]initWithFrame:CGRectMake(10, 10, ScreenW - 20, 30)];
     orderIdLabel.backgroundColor = [UIColor clearColor];
-    orderIdLabel.text = [NSString stringWithFormat:@"订单编号: %@",[reasonVO.order_id stringValue]];
+    orderIdLabel.text = [NSString stringWithFormat:@"订单编号: %@",reasonVO.order_id];
     orderIdLabel.textColor = GRAY_COLOR;
     orderIdLabel.font = FONT(15);
     [_scrollView addSubview:orderIdLabel];
@@ -389,7 +389,7 @@
     }
     
     //提交/取消按钮
-    UIButton *submitBtn = [[UIButton alloc]initWithFrame:CGRectMake(ScreenW/2 -100, CGRectGetMaxY(_remarkExplainTextView.frame) +20 + (numY+1)*(imageWight+15), 80, 25)];
+    submitBtn = [[UIButton alloc]initWithFrame:CGRectMake(ScreenW/2 -100, CGRectGetMaxY(_remarkExplainTextView.frame) +20 + (numY+1)*(imageWight+15), 80, 25)];
     [submitBtn setBackgroundImage:[UIImage imageNamed:@"red_btn_small"] forState:UIControlStateNormal];
     [submitBtn setTitle:@"提交申请" forState:UIControlStateNormal];
     submitBtn.titleLabel.font = FONT(13);
@@ -417,6 +417,7 @@
 #pragma mark - RegionRequest
 - (void)getRefundReasonOperation
 {
+    [self loadHUD];
     KTBaseRequest *req = [[KTBaseRequest alloc] init];
     
     NSString *userid = nil;
@@ -438,11 +439,11 @@
     }
     
     KTProxy *proxy = [KTProxy loadWithRequest:req completed:^(NSString *resp, NSStringEncoding encoding) {
-        
+        [self hideHUD];
         [self performSelectorOnMainThread:@selector(getRefundReasonResponse:) withObject:resp waitUntilDone:YES];
         
     } failed:^(NSError *error) {
-        
+        [self hideHUD];
         [self performSelectorOnMainThread:@selector(textStateHUD:) withObject:@"网络错误" waitUntilDone:YES];
     }];
     
@@ -665,14 +666,16 @@
 -(NSString * )getSaveKey:(NSInteger)imgno {
     // 上传图片，以文件流的格式
     NSString *userid = [[[kata_UserManager sharedUserManager] userInfo] objectForKey:@"user_id"];
-    NSString *fileName = [NSString stringWithFormat:@"_refund_%@%@_%d.jpg", userid, _goodVO.goods_id,imgno];
+    NSString *fileName = [NSString stringWithFormat:@"_refund_%@%@_%zi.jpg", userid, _goodVO.goods_id,imgno];
     
     return fileName;
 }
 
-#pragma mark - RegionRequest
+#pragma mark - 提交退款申请
 - (void)submitRefundOperation
 {
+    [submitBtn setEnabled:NO];
+    
     if (imageViewArr.count <= 0) {
         [self loadHUD];
     }
@@ -736,8 +739,12 @@
     [paramsDict setObject:@"user_apply_refund" forKey:@"method"];
     
     KTProxy *proxy = [KTProxy loadWithRequest:req completed:^(NSString *resp, NSStringEncoding encoding) {
+        [self hideHUD];
+        [submitBtn setEnabled:YES];
         [self performSelectorOnMainThread:@selector(submitRefundResponse:) withObject:resp waitUntilDone:YES];
     } failed:^(NSError *error) {
+        [self hideHUD];
+        [submitBtn setEnabled:YES];
         [self performSelectorOnMainThread:@selector(textStateHUD:) withObject:@"网络错误" waitUntilDone:YES];
     }];
     
@@ -752,11 +759,14 @@
         
         NSString *statusStr = [respDict objectForKey:@"status"];
         if ([statusStr isEqualToString:@"OK"]) {
-            kata_ReturnOrderDetailViewController *detailVC = [[kata_ReturnOrderDetailViewController alloc] initWithGoodVO:_goodVO andOrderID:[reasonVO.order_id stringValue] andType:1];
+            
+            [[NSNotificationCenter defaultCenter] postNotificationName:@"flashOrder" object:nil];
+            [[NSNotificationCenter defaultCenter] postNotificationName:@"flashDetail" object:nil];
+            
+            kata_ReturnOrderDetailViewController *detailVC = [[kata_ReturnOrderDetailViewController alloc] initWithGoodVO:_goodVO andOrderID:reasonVO.order_id andType:1];
             detailVC.navigationController = self.navigationController;
             detailVC.hidesBottomBarWhenPushed = YES;
             [self.navigationController pushViewController:detailVC animated:YES];
-            [self hideHUD];
         }else{
             [self textStateHUD:[respDict objectForKey:@"msg"]];
         }
@@ -765,7 +775,7 @@
     }
 }
 
-//取消
+//取消申请退款
 - (void)cancelBtnClick
 {
     UIAlertView *alertView = [[UIAlertView alloc] initWithTitle:@"取消退款" message:@"确定取消退款?" delegate:self cancelButtonTitle:@"确定" otherButtonTitles:@"取消", nil];
@@ -838,7 +848,7 @@
     picker.maximumNumberOfSelection = insertNum;
     picker.assetsFilter = [ALAssetsFilter allPhotos];
     picker.showEmptyGroups=NO;
-    picker.delegate=self;
+    picker.zyDelegate=self;
     picker.selectionFilter = [NSPredicate predicateWithBlock:^BOOL(id evaluatedObject, NSDictionary *bindings) {
         if ([[(ALAsset*)evaluatedObject valueForProperty:ALAssetPropertyType] isEqual:ALAssetTypeVideo]) {
             NSTimeInterval duration = [[(ALAsset*)evaluatedObject valueForProperty:ALAssetPropertyDuration] doubleValue];

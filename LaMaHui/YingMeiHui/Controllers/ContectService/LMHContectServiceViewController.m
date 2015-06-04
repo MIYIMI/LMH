@@ -30,12 +30,6 @@
 - (void)viewDidLoad
 {
     [super viewDidLoad];
-    
-//    //更换导航条
-//    [self.navigationController.navigationBar setBackgroundImage:[UIImage imageNamed:@"nav_bg_lightGray"] forBarMetrics:UIBarMetricsDefault];
-//    [[UIApplication sharedApplication] setStatusBarStyle:UIStatusBarStyleDefault];
-//    self.hidesBottomBarWhenPushed = YES;
-
     webView = [[UIWebView alloc] initWithFrame:CGRectMake(0, 0, ScreenW , ScreenH - 64)];
     NSURLRequest *request =[NSURLRequest requestWithURL:[NSURL URLWithString:@"http://chat10.live800.com/live800/chatClient/chatbox.jsp?companyID=425740&configID=217296&jid=8065123196&enterurl=APP%E5%92%A8%E8%AF%A2"]];
     [self.view addSubview: webView];

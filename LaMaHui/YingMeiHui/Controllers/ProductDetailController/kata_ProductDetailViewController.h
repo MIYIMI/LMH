@@ -7,13 +7,11 @@
 //
 
 #import "FTStatefulTableViewController.h"
-#import "kata_GoodFocusViewController.h"
 #import "kata_LoginViewController.h"
 #import "EGOImageView.h"
 #import "SDWebImagePrefetcher.h"
-#import "KTOtherProductListviewTableViewCell.h"
 #import "PopSkuView.h"
-
+#import "AloneProductCellTableViewCell.h"
 
 typedef enum{
     ProductDetailType_noraml,// 正常流程进入的 商品详情.
@@ -22,15 +20,14 @@ typedef enum{
 
 @interface kata_ProductDetailViewController : FTStatefulTableViewController
 <
-KATAFocusViewControllerDelegate,
 LoginDelegate,
 EGOImageViewDelegate,
 UIActionSheetDelegate,
 UIScrollViewDelegate,
 SDWebImagePrefetcherDelegate,
-KTOtherProductListviewTableViewCellDelegate,
 PopSkuViewDelegate,
-UIGestureRecognizerDelegate
+UIGestureRecognizerDelegate,
+AloneProductCellTableViewCellDelgate
 >
 
 - (id)initWithProductID:(NSInteger)productid

@@ -74,7 +74,6 @@
     CGFloat realStarScore = offset / (self.bounds.size.width / self.numberOfStars);
     CGFloat starScore = self.allowIncompleteStar ? realStarScore : ceilf(realStarScore);
     self.scorePercent = starScore / self.numberOfStars;
-//    NSLog(@">>>>>>>>>%.1f", _scorePercent * 10);
 }
 
 - (UIView *)createStarViewWithImage:(NSString *)imageName {

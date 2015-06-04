@@ -76,38 +76,12 @@
         }
         
         if (nil != [dictionary objectForKey:@"event_discount"] && ![[dictionary objectForKey:@"event_discount"] isEqual:[NSNull null]] && [[dictionary objectForKey:@"event_discount"] isKindOfClass:[NSArray class]]) {
-            self.event_discount = [dictionary objectForKey:@"event_discount"];
+            self.event_discount = [CartBrandDis CartBrandDisWithArray:[dictionary objectForKey:@"event_discount"]];
         }
     }
     
     return self;
 }
 
-- (NSString *)description
-{
-    NSMutableString * descriptionOutput = [[NSMutableString alloc] init];
-    [descriptionOutput appendFormat: @"ProductName = \"%@\"\r\n", event_title];
-    [descriptionOutput appendFormat: @"ProductImage = \"%@\"\r\n", brand_id];
-    [descriptionOutput appendFormat: @"SkuID = \"%@\"\r\n", logo_url];
-    [descriptionOutput appendFormat: @"BrandName = \"%@\"\r\n", discount_word];
-    [descriptionOutput appendFormat: @"Options = \"%@\"\r\n", product_arr];
-    [descriptionOutput appendFormat: @"Options = \"%@\"\r\n", event_discount];
-    
-    return JSONAutoRelease(descriptionOutput);
-}
-
-- (void)dealloc
-{
-#if ! __has_feature(objc_arc)
-    [event_title release];
-    [brand_id release];
-    [logo_url release];
-    [discount_word release];
-    [product_arr release];
-    [event_discount release];
-    
-    [super dealloc];
-#endif
-}
-
 @end
+

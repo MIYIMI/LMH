@@ -9,7 +9,6 @@
 #import "FTStatefulTableViewController.h"
 #import "kata_LoginViewController.h"
 #import "KTPaymentTableViewCell.h"
-#import "kata_WalletBindViewController.h"
 #import "UPPayPlugin.h"
 
 @interface kata_CashFailedViewController : FTStatefulTableViewController
@@ -17,7 +16,6 @@
 UIActionSheetDelegate,
 LoginDelegate,
 KTPaymentTableViewCellDelegate,
-kata_WalletBindViewControllerDelegate,
 UPPayPluginDelegate
 >
 

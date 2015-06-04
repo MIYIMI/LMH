@@ -155,12 +155,12 @@
     if (!_saveItem) {
         UIButton * saveBtn = [UIButton buttonWithType:UIButtonTypeCustom];
         [saveBtn setFrame:CGRectMake(0, 0, 30, 30)];
+        saveBtn.backgroundColor = [UIColor clearColor];
         [saveBtn setTitleColor:[UIColor whiteColor] forState:UIControlStateNormal];
         [saveBtn.titleLabel setFont:[UIFont boldSystemFontOfSize:13.0]];
+        [saveBtn setImage:[UIImage imageNamed:@"nav_comfirm_btn"] forState:UIControlStateNormal];
+//        [saveBtn setImageEdgeInsets:UIEdgeInsetsMake(2, 2, 0, 0)];
         _saveBtn = saveBtn;
-        
-        UIImage *image = [UIImage imageNamed:@"nav_comfirm_btn"];
-        [saveBtn setImage:image forState:UIControlStateNormal];
         
         [saveBtn addTarget:self action:@selector(savePressed) forControlEvents:UIControlEventTouchUpInside];
         UIBarButtonItem * saveItem = [[UIBarButtonItem alloc] initWithCustomView:saveBtn];
@@ -321,8 +321,6 @@
     stateHud.mode = MBProgressHUDModeIndeterminate;
     stateHud.labelFont = [UIFont systemFontOfSize:14.0f];
     [stateHud show:YES];
-    
-    //KTBaseRequest *req = [[KTBaseRequest alloc] init];
     
     KTAddressRegionInfoGetRequest *req = [[KTAddressRegionInfoGetRequest alloc] initWithCode:[_regionPid intValue]];
     

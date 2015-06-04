@@ -13,7 +13,7 @@
 
 @protocol PopSkuViewDelegate <NSObject>
 
--(void)select_Color:(NSInteger)colorid select_Size:(NSInteger)sizeid total_Num:(NSInteger)qty;
+-(void)select_Color:(NSInteger)colorid select_Size:(NSInteger)sizeid total_Num:(NSInteger)qty andSku_id:(NSString *)sku_id;
 //-(void)finish_Select;
 
 @end
@@ -50,6 +50,7 @@
 @property(nonatomic, strong) UITableView *skuTabeView;
 @property(nonatomic, strong) ProductInfoVO *_productVO;
 @property(nonatomic, strong) NSNumber *_proid;
+@property(nonatomic)         BOOL _isShoppingCart;
 
 - (void)textStateHUD:(NSString *)text;
 

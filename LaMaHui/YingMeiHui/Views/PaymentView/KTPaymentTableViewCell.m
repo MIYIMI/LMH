@@ -50,9 +50,9 @@
 
 - (void)bindBtnPressed
 {
-    if (self.paymentCellDelegate && [self.paymentCellDelegate respondsToSelector:@selector(bindWalletBtnPressed)]) {
-        [self.paymentCellDelegate bindWalletBtnPressed];
-    }
+//    if (self.paymentCellDelegate && [self.paymentCellDelegate respondsToSelector:@selector(bindWalletBtnPressed)]) {
+//        [self.paymentCellDelegate bindWalletBtnPressed];
+//    }
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////

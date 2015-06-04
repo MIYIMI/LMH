@@ -11,7 +11,6 @@
 @interface SSPullToRefreshSimpleContentView : UIView <SSPullToRefreshContentView>
 
 @property (nonatomic, readonly) UILabel *statusLabel;
-@property (nonatomic, readonly) UILabel *lastUpdatedAtLabel;
 @property (nonatomic, readonly) UIActivityIndicatorView *activityIndicatorView;
 
 @end

@@ -97,8 +97,7 @@
     for (NSInteger i = 0; i < _curViews.count; i++) {
         UIView *v = [_curViews objectAtIndex:i];
         v.userInteractionEnabled = YES;
-        UITapGestureRecognizer *singleTap = [[UITapGestureRecognizer alloc] initWithTarget:self
-                                                                                    action:@selector(handleTap:)];
+        UITapGestureRecognizer *singleTap = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(handleTap:)];
         [v addGestureRecognizer:singleTap];
         v.frame = CGRectOffset(v.frame, v.frame.size.width * i, 0);
         [_scrollView addSubview:v];
@@ -192,10 +191,15 @@
 {
     [self.animationTimer resumeTimerAfterTimeInterval:self.animationDuration];
 }
+
 - (void)animationTimerDidFired:(NSTimer *)timer
 {
     CGPoint  newOffset = CGPointMake(self.scrollView.contentOffset.x + CGRectGetWidth(self.scrollView.frame), self.scrollView.contentOffset.y);
     [self.scrollView setContentOffset:newOffset animated:YES];
+}
+
+- (void)dealloc{
+    self.scrollView.delegate = nil;
 }
 @end
 

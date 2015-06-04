@@ -108,6 +108,7 @@
 - (UIViewController *)viewPager:(ViewPagerController *)viewPager contentViewControllerForTabAtIndex:(NSUInteger)index
 {
     UIViewController *cvc = nil;
+    
     if ([_channelArr objectAtIndex:index]) {
         if ([[_channelArr objectAtIndex:index] isKindOfClass:[NSString class]]) {
             

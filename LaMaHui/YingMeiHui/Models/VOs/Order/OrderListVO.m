@@ -83,6 +83,7 @@
 @synthesize order_id;
 @synthesize pay_status;
 @synthesize pay_status_name;
+@synthesize goods_total;
 
 + (OrderListVO *)OrderListVOWithJSONString:(NSString *)jsonString usingEncoding:(NSStringEncoding)stringEncoding error:(NSError **)error
 {
@@ -165,6 +166,9 @@
         
         if (nil != [dictionary objectForKey:@"pay_status_name"] && ![[dictionary objectForKey:@"pay_status_name"] isEqual:[NSNull null]]) {
             self.pay_status_name = [dictionary objectForKey:@"pay_status_name"];
+        }
+        if (nil != [dictionary objectForKey:@"goods_total"] && ![[dictionary objectForKey:@"goods_total"] isEqual:[NSNull null]]) {
+            self.goods_total = [dictionary objectForKey:@"goods_total"];
         }
     }
     
@@ -286,6 +290,8 @@
 @synthesize market_price;
 @synthesize goods_id;
 @synthesize quantity;
+@synthesize pay_status_name;
+@synthesize orderBtn;
 
 + (NSArray *)OrderGoodsVOListWithArray:(NSArray *)array
 {
@@ -367,8 +373,13 @@
         if (nil != [dictionary objectForKey:@"quantity"] && ![[dictionary objectForKey:@"quantity"] isEqual:[NSNull null]]) {
             self.quantity = [dictionary objectForKey:@"quantity"];
         }
+        if (nil != [dictionary objectForKey:@"pay_orderstatus_name"] && ![[dictionary objectForKey:@"pay_orderstatus_name"] isEqual:[NSNull null]]) {
+            self.pay_status_name = [dictionary objectForKey:@"pay_orderstatus_name"];
+        }
+        if (nil != [dictionary objectForKey:@"order_button"] && ![[dictionary objectForKey:@"order_button"] isEqual:[NSNull null]] && [dictionary[@"order_button"] isKindOfClass:[NSArray class]]) {
+            self.orderBtn = [OrderButtonVO OrderButtonVOListWithArray:dictionary[@"order_button"]];
+        }
     }
-    
     return self;
 }
 
@@ -391,6 +402,50 @@
     
     [super dealloc];
 #endif
+}
+
+@end
+
+@implementation OrderButtonVO
+@synthesize btn_color;
+@synthesize btn_name;
+@synthesize btn_type;
+
++ (NSArray *)OrderButtonVOListWithArray:(NSArray *)array{
+    NSMutableArray *resultsArray = [[NSMutableArray alloc] init];
+    
+    for (id entry in array) {
+        if (![entry isKindOfClass:[NSDictionary class]]) {
+            continue;
+        }
+        
+        [resultsArray addObject:[OrderButtonVO OrderButtonVOWithDictionary:entry]];
+    }
+    
+    return resultsArray;
+}
+
++ (OrderButtonVO *)OrderButtonVOWithDictionary:(NSDictionary *)dictionary{
+    OrderButtonVO *instance = [[OrderButtonVO alloc] initWithDictionary:dictionary];
+    return instance;
+}
+
+- (id)initWithDictionary:(NSDictionary *)dictionary{
+    self = [super init];
+    
+    if (self) {
+        if (nil != [dictionary objectForKey:@"color"] && ![[dictionary objectForKey:@"color"] isEqual:[NSNull null]]) {
+            self.btn_color = [dictionary objectForKey:@"color"];
+        }
+        if (nil != [dictionary objectForKey:@"btn_name"] && ![[dictionary objectForKey:@"btn_name"] isEqual:[NSNull null]]) {
+            self.btn_name = [dictionary objectForKey:@"btn_name"];
+        }
+        if (nil != [dictionary objectForKey:@"btn_type"] && ![[dictionary objectForKey:@"btn_type"] isEqual:[NSNull null]]) {
+            self.btn_type = [dictionary objectForKey:@"btn_type"];
+        }
+    }
+    
+    return self;
 }
 
 @end

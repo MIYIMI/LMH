@@ -35,16 +35,20 @@
 #import "KTNavigationController.h"
 #import "LMHCellView.h"
 #import "CommentsViewCell.h"
-#import "KTChannelViewController.h"
 #import "LMHContectServiceViewController.h"
 #import "kata_WebViewController.h"
+#import "LMH_ImageTableViewCell.h"
+#import "LMH_ReviewTableViewCell.h"
+#import "LMH_KeyBoradView.h"
+#import "LMH_EvaluateViewController.h"
 
 #import <QuartzCore/QuartzCore.h>
 #import "WCAlertView.h"
+#import "LikeProductVO.h"
 #define TABLEVIEWCOLOR      [UIColor whiteColor]
 #define BOTTOMHEIGHT        45
 
-@interface kata_ProductDetailViewController ()<LMHCellViewDelegate,UMSocialUIDelegate,XLCycleScrollViewDatasource,XLCycleScrollViewDelegate>
+@interface kata_ProductDetailViewController ()<LMHCellViewDelegate,UMSocialUIDelegate,XLCycleScrollViewDatasource,XLCycleScrollViewDelegate, LMH_ReviewTableViewCellDelegate,UITextFieldDelegate,LMH_KeyBoradViewDelegate>
 {
     NSInteger _productid;
     NSInteger _seckillID;
@@ -65,7 +69,6 @@
     UILabel *__saleTipLbl;
     UIView *_colorPropView;
     UIView *_sizePropView;
-    UIButton *_moreDetailBtn;
     UIView *_bottomView;
     UIButton *_buyBtn;
     UIButton *_cartBtn;
@@ -108,16 +111,20 @@
     BrandInfoVO *brandDict;
     NSMutableArray *likeArray;
     CartInfo *_cartInfo;
+    DetailViewVO *allVO;
     
     PopSkuView *popSkuTableView;
     UIView *popResultView;
     NSInteger sectioNum;
     UIView *_errorView;
+    LMH_KeyBoradView *keyView;
     
     CommentsVO *commentVO;
     NSMutableArray *btnArray;
     NSMutableArray *sizeArray;
     NSMutableDictionary *imageHeightDict;
+    NSArray *eveluateArray;
+    NSArray *favimgArray;
     
     UIView *sectionView;
     UILabel *lineLbl;
@@ -125,6 +132,9 @@
     UILabel *sroceLbl;
     UIView *srocrView;
     UIView *halfView;
+    UITextField *textField;
+    UIButton *eveluateBtn;
+    UIButton *reverBtn;
     
     //秒杀类型
     NSInteger _productType;
@@ -136,6 +146,14 @@
     NSString *exclusive_price; //新人专享价
     UIButton *collectionBtn;
     NSInteger  jifen;
+    
+    NSNumber *eveluateUserid;//被回复用户的id
+    NSNumber *eveluatesmsID;          //被回复的内容id
+    NSString *eveluateTent;
+    NSString *userid;
+    NSString *usertoken;
+    
+    CGRect vFrame;
 }
 
 @end
@@ -149,7 +167,7 @@
         // Custom initialization
         self.ifShowTableSeparator = NO;
         self.ifShowScrollToTopBtn = NO;
-        self.ifShowToTop = YES;
+//        self.ifShowToTop = YES;
         self.ifAddPullToRefreshControl = NO;
         self.ifShowBtnHigher = YES;
         
@@ -166,20 +184,12 @@
         _skuNum = 0;
         _spImg = [UIImage imageNamed:@"Icon"];
         
-        //自定义 title
-        UILabel *titleLabel = [[UILabel alloc]initWithFrame:CGRectMake(0, 0, 120, 46)];
-        titleLabel.backgroundColor = [UIColor clearColor];
-        titleLabel.text = @"商品详情";
-        titleLabel.textAlignment = NSTextAlignmentCenter;
-        titleLabel.textColor = LMH_COLOR_SKIN;
-        titleLabel.font = LMH_FONT_17;
-        self.navigationItem.titleView = titleLabel;
-
+        self.title = @"商品详情";
         
         _selectColor = NO;
         _selectSize = NO;
         
-        _productType = [productType integerValue];
+        _productType = [productType integerValue];//商品类型
         
         
         _cartSkuArr = [[NSMutableArray alloc] init];
@@ -200,18 +210,14 @@
     [super viewWillAppear:animated];
     
     [self layoutCartCt];
-    if(limitTimer){
+    if(!limitTimer){
         limitTimer = [NSTimer scheduledTimerWithTimeInterval:1.0 target:self selector:@selector(compareCurrentTime) userInfo:nil repeats:YES];
     }
     currentVC = YES;
-    
-    [self.navigationController.navigationBar setBackgroundImage:[UIImage imageNamed:@"nav_some_bgView"] forBarMetrics:UIBarMetricsDefault];
-    [[UIApplication sharedApplication] setStatusBarStyle:UIStatusBarStyleDefault];
 }
 
 -(void)viewDidAppear:(BOOL)animated{
     [super viewDidAppear:animated];
-    [[(kata_AppDelegate *)[[UIApplication sharedApplication] delegate] deckController] setPanningMode:IIViewDeckNoPanning];
 }
 
 - (void)viewDidLoad
@@ -223,21 +229,31 @@
     
     //返回按钮
     UIButton * backBarButton = [[UIButton alloc] initWithFrame:CGRectMake(0, 0, 20, 27)];
-    [backBarButton setImage:[UIImage imageNamed:@"icon_goback_red"]
-                   forState:UIControlStateNormal];
-    [backBarButton setImage:[UIImage imageNamed:@"icon_goback_red"]
-                   forState:UIControlStateHighlighted];
+    [backBarButton setImage:[UIImage imageNamed:@"icon_goback_gray"] forState:UIControlStateNormal];
+    [backBarButton setImage:[UIImage imageNamed:@"icon_goback_gray"] forState:UIControlStateHighlighted];
     
-    [backBarButton addTarget:self
-                      action:@selector(popToViewController)
-            forControlEvents:UIControlEventTouchUpInside];
+    [backBarButton addTarget:self action:@selector(popToViewController) forControlEvents:UIControlEventTouchUpInside];
     
     UIBarButtonItem * backBarButtonItem = [[UIBarButtonItem alloc] initWithCustomView:backBarButton];
     backBarButtonItem.style = UIBarButtonItemStylePlain;
     
     [self.navigationController addLeftBarButtonItem:backBarButtonItem animation:NO];
-
+    
+    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(keyboardWasShow:) name:UIKeyboardDidChangeFrameNotification object:nil];
+    
+    UITapGestureRecognizer *tapGestureRecognizer = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(keyboardHide:)];
+    //设置成NO表示当前控件响应后会传播到其他控件上，默认为YES。
+//    tapGestureRecognizer.cancelsTouchesInView = NO;
+    //将触摸事件添加到当前view
+    [self.view addGestureRecognizer:tapGestureRecognizer];
+    
+    keyView = [[LMH_KeyBoradView alloc] initWithFrame:CGRectMake(0, ScreenH-94, ScreenW, 40)];
+    keyView.backgroundColor = [UIColor whiteColor];
+    keyView.keyDelegate = self;
+    [self.view addSubview:keyView];
+    keyView.hidden = YES;
 }
+
 - (void)popToViewController
 {
     [self.navigationController popViewControllerAnimated:YES];
@@ -247,11 +263,15 @@
 {
     [super viewWillDisappear:animated];
     [limitTimer invalidate];
+    limitTimer = nil;
+    
     currentVC = NO;
-    [self.navigationController.navigationBar setBackgroundImage:[UIImage imageNamed:@"nav_bg_red"] forBarMetrics:UIBarMetricsDefault];
-    [[UIApplication sharedApplication] setStatusBarStyle:UIStatusBarStyleLightContent];
     
     [[SDWebImagePrefetcher sharedImagePrefetcher] cancelPrefetching];
+    
+    keyView.hidden = YES;
+    [keyView.textField resignFirstResponder];
+    [textField resignFirstResponder];
 }
 
 - (void)viewDidDisappear:(BOOL)animated{
@@ -269,6 +289,7 @@
 {
     kata_MyViewController *myVC = [[kata_MyViewController alloc] initWithIsRoot:NO];
     myVC.navigationController = self.navigationController;
+    myVC.hideNavigationBarWhenPush = YES;
     [self.navigationController pushViewController:myVC animated:YES];
 }
 
@@ -344,17 +365,6 @@
         [sectionView addSubview:lineLbl];
     }
     [sectionView setBackgroundColor:[UIColor whiteColor]];
-//    sectionView.layer.borderColor = [[UIColor colorWithRed:0.8 green:0.8 blue:0.8 alpha:1] CGColor];
-//    sectionView.layer.borderWidth = 1.0;
-
-//    UIView *lineOne = [[UIView alloc]initWithFrame:CGRectMake(0, 0, ScreenW, 1)];
-//    lineOne.backgroundColor = [UIColor colorWithRed:0.8 green:0.8 blue:0.8 alpha:1];
-//    [sectionView addSubview:lineOne];
-//    UIView *lineTwo = [[UIView alloc]initWithFrame:CGRectMake(0, 39, ScreenW, 1)];
-//    lineTwo.backgroundColor = [UIColor colorWithRed:0.8 green:0.8 blue:0.8 alpha:1];
-//    [sectionView addSubview:lineTwo];
-    
-    
 }
 
 -(void)backBtnClick
@@ -367,23 +377,27 @@
 - (void)addRightBarButtonItem
 {
     //返回首页按钮
+    UIView *rightView = [[UIView alloc] initWithFrame:CGRectMake(0, 0, 70, 44)];
+    
     UIButton *returnHomeBtn = [UIButton buttonWithType:UIButtonTypeCustom];
-    [returnHomeBtn setImage:[UIImage imageNamed:@"Icon_goHome_red"] forState:UIControlStateNormal];
+    [returnHomeBtn setImage:[UIImage imageNamed:@"Icon_goHome_gray"] forState:UIControlStateNormal];
     returnHomeBtn.frame = CGRectMake(0, 7, 30, 30);
     [returnHomeBtn addTarget:self action:@selector(returnHomeBtnClick) forControlEvents:UIControlEventTouchUpInside];
+    [rightView addSubview:returnHomeBtn];
     
-    UIBarButtonItem * shareItem = [[UIBarButtonItem alloc] initWithCustomView:returnHomeBtn];
-    [self.navigationController addRightBarButtonItem:shareItem animation:NO];
+    UIButton *shareBtn = [[UIButton alloc] init];
+    shareBtn.frame = CGRectMake(CGRectGetMaxX(returnHomeBtn.frame)+10, 12, 20, 20);
+    [shareBtn setBackgroundImage:LOCAL_IMG(@"new_share") forState:UIControlStateNormal];
+    [shareBtn addTarget:self action:@selector(shareButtonPressed) forControlEvents:UIControlEventTouchUpInside];
+    [rightView addSubview:shareBtn];
+    
+    UIBarButtonItem *rightItem = [[UIBarButtonItem alloc] initWithCustomView:rightView];
+    
+    [self.navigationController addRightBarButtonItem:rightItem animation:NO];
 
 }
 - (void)returnHomeBtnClick
 {
-    NSArray *viewControllers =[[[self.tabBarController childViewControllers] objectAtIndex:0] childViewControllers];
-    for (UIViewController *vc in viewControllers) {
-        if ([vc isKindOfClass:[KTChannelViewController class]]) {
-            [(KTChannelViewController *)vc selectedTabIndex:0];
-        }
-    }
     self.tabBarController.selectedIndex=0;
     if (self.tabBarController.selectedIndex == 0) {
         [self.navigationController popToRootViewControllerAnimated:YES];
@@ -395,6 +409,9 @@
     CGRect frame = self.tableView.frame;
     frame.size.height -= BOTTOMHEIGHT;
     self.tableView.frame = frame;
+    
+    vFrame = frame;
+    
     if (!_bottomView) {
         _bottomView = [[UIView alloc] initWithFrame:CGRectMake(0, CGRectGetHeight(self.contentView.frame) - BOTTOMHEIGHT, CGRectGetWidth(self.contentView.frame), BOTTOMHEIGHT)];
         [_bottomView setBackgroundColor:TABLEVIEWCOLOR];
@@ -428,15 +445,12 @@
         UIImage *bimage = [UIImage imageNamed:@"red_btn_small"];
         bimage = [bimage stretchableImageWithLeftCapWidth:14.0f topCapHeight:14.0f];
         [buyBtn setBackgroundImage:bimage forState:UIControlStateNormal];
-        bimage = [UIImage imageNamed:@"buynowbtn_select"];
-        bimage = [bimage stretchableImageWithLeftCapWidth:14.0f topCapHeight:14.0f];
-        [buyBtn setBackgroundImage:bimage forState:UIControlStateHighlighted];
-        [buyBtn setBackgroundImage:bimage forState:UIControlStateSelected];
+        
         [buyBtn setTitleColor:[UIColor whiteColor] forState:UIControlStateNormal];
-        [buyBtn setTitleColor:[UIColor whiteColor] forState:UIControlStateDisabled];
         [[buyBtn titleLabel] setFont:[UIFont boldSystemFontOfSize:13.0f]];
         [buyBtn addTarget:self action:@selector(buyNowBtnPressed:) forControlEvents:UIControlEventTouchUpInside];
         [_bottomView addSubview:buyBtn];
+        
         _buyBtn = buyBtn;
         _buyBtn.tag = 10001;
         if (_productType == 1) {
@@ -492,7 +506,7 @@
     [halfView addGestureRecognizer:halfTap];
     [halfView setHidden:YES];
     
-    popSkuTableView = [[PopSkuView alloc] initWithFrame:CGRectMake(0, ScreenH - ScreenH/5*4, ScreenW, ScreenH/ 5*4)];
+    popSkuTableView = [[PopSkuView alloc] initWithFrame:CGRectMake(0, ScreenH - ScreenH/3*2, ScreenW, ScreenH/3*2)];
 }
 
 - (void)callBtnClick
@@ -557,8 +571,6 @@
 {
     //[self loadWithHud];
     NSString *cartid = nil;
-    NSString *userid = nil;
-    NSString *usertoken = nil;
     
     if ([[kata_CartManager sharedCartManager] hasCartID]) {
         cartid = [[kata_CartManager sharedCartManager] cartID];
@@ -805,8 +817,6 @@
     [_cartBtn setEnabled:NO];
     [_buyBtn setEnabled:NO];
     NSString *cartid = nil;
-    NSString *userid = nil;
-    NSString *usertoken = nil;
     
     if ([[kata_CartManager sharedCartManager] hasCartID]) {
         cartid = [[kata_CartManager sharedCartManager] cartID];
@@ -963,10 +973,11 @@
 
 - (void)shareButtonPressed
 {
+    keyView.hidden = YES;
+    [keyView.textField resignFirstResponder];
+    [textField resignFirstResponder];
+    
     NSString *shareURL = productURL;
-    if (!shareURL) {
-        return;
-    }
     
     [UMSocialData defaultData].extConfig.title = productDict.share_title;
     [UMSocialData defaultData].extConfig.wxMessageType = UMSocialWXMessageTypeWeb;
@@ -990,6 +1001,11 @@
         return;
     }
     
+    //收藏过后就不再收藏
+    if ([productDict.IsFaved boolValue]) {
+        [self.tableView selectRowAtIndexPath:[NSIndexPath indexPathForRow:0 inSection:3] animated:YES scrollPosition:UITableViewScrollPositionTop];
+        return;
+    }
     [self favProductOperation];
 }
 
@@ -1128,39 +1144,27 @@
     
     KTBaseRequest *req = [[KTBaseRequest alloc] init];
     
-    NSString *favOpType = nil;
-    if (_isFaved) {
-        favOpType = @"delete";
-    } else {
-        favOpType = @"add";
+    if ([[[kata_UserManager sharedUserManager] userInfo] objectForKey:@"user_id"] && [[[[kata_UserManager sharedUserManager] userInfo] objectForKey:@"user_id"] isKindOfClass:[NSString class]] && ![[[[kata_UserManager sharedUserManager] userInfo] objectForKey:@"user_id"] isEqualToString:@""]) {
+        userid = [[[kata_UserManager sharedUserManager] userInfo] objectForKey:@"user_id"];
     }
     
-    if (favOpType) {
-        NSString *userid = nil;
-        NSString *usertoken = nil;
-        
-        if ([[[kata_UserManager sharedUserManager] userInfo] objectForKey:@"user_id"] && [[[[kata_UserManager sharedUserManager] userInfo] objectForKey:@"user_id"] isKindOfClass:[NSString class]] && ![[[[kata_UserManager sharedUserManager] userInfo] objectForKey:@"user_id"] isEqualToString:@""]) {
-            userid = [[[kata_UserManager sharedUserManager] userInfo] objectForKey:@"user_id"];
-        }
-        
-        if ([[[kata_UserManager sharedUserManager] userInfo] objectForKey:@"user_token"] && [[[[kata_UserManager sharedUserManager] userInfo] objectForKey:@"user_token"] isKindOfClass:[NSString class]] && ![[[[kata_UserManager sharedUserManager] userInfo] objectForKey:@"user_token"] isEqualToString:@""]) {
-            usertoken = [[[kata_UserManager sharedUserManager] userInfo] objectForKey:@"user_token"];
-        }
-        
-        if (userid && usertoken) {
-            req = [[KTFavOperateRequest alloc] initWithUserID:[userid integerValue]
-                                                 andUserToken:usertoken
-                                                 andProductID:_productid
-                                                      andType:favOpType];
-        }
+    if ([[[kata_UserManager sharedUserManager] userInfo] objectForKey:@"user_token"] && [[[[kata_UserManager sharedUserManager] userInfo] objectForKey:@"user_token"] isKindOfClass:[NSString class]] && ![[[[kata_UserManager sharedUserManager] userInfo] objectForKey:@"user_token"] isEqualToString:@""]) {
+        usertoken = [[[kata_UserManager sharedUserManager] userInfo] objectForKey:@"user_token"];
+    }
+    
+    if (userid && usertoken) {
+        req = [[KTFavOperateRequest alloc] initWithUserID:[userid integerValue]
+                                             andUserToken:usertoken
+                                             andProductID:_productid
+                                                  andType:@"add"];
     }
     
     KTProxy *proxy = [KTProxy loadWithRequest:req completed:^(NSString *resp, NSStringEncoding encoding) {
-        
+        [stateHud hide:YES];
         [self performSelectorOnMainThread:@selector(favProductParseResponse:) withObject:resp waitUntilDone:YES];
         
     } failed:^(NSError *error) {
-        
+        [stateHud hide:YES];
         [self performSelectorOnMainThread:@selector(textStateHUD:) withObject:@"网络错误" waitUntilDone:YES];
     }];
     
@@ -1170,12 +1174,7 @@
 
 - (void)favProductParseResponse:(NSString *)resp
 {
-    NSString *hudPrefixStr = @"";
-    if (_isFaved) {
-        hudPrefixStr = @"取消收藏";
-    } else {
-        hudPrefixStr = @"收藏成功";
-    }
+    NSString *hudPrefixStr = @"喜欢成功";
     if (resp) {
         NSData *respData = [resp dataUsingEncoding:NSUTF8StringEncoding allowLossyConversion:YES];
         NSDictionary *respDict = [NSJSONSerialization JSONObjectWithData:respData options:NSJSONReadingMutableLeaves error:nil];
@@ -1185,56 +1184,28 @@
         if ([statusStr isEqualToString:@"OK"]) {
             if (nil != [respDict objectForKey:@"data"] && ![[respDict objectForKey:@"data"] isEqual:[NSNull null]] && [[respDict objectForKey:@"data"] isKindOfClass:[NSDictionary class]]) {
                 
-                NSDictionary *dataObj = (NSDictionary *)[respDict objectForKey:@"data"];
+                NSDictionary *dataObj = [respDict objectForKey:@"data"];
                 if ([[dataObj objectForKey:@"code"] integerValue] == 0) {
-                    
-                    id messageObj = [dataObj objectForKey:@"msg"];
-                    if (messageObj) {
-                        if ([messageObj isKindOfClass:[NSString class]] && ![messageObj isEqualToString:@""]) {
-                            [self performSelectorOnMainThread:@selector(textStateHUD:) withObject:hudPrefixStr waitUntilDone:YES];
-                        } else {
-                            [self performSelectorOnMainThread:@selector(textStateHUD:) withObject:hudPrefixStr  waitUntilDone:YES];
-                        }
-                    } else {
-                        [self performSelectorOnMainThread:@selector(textStateHUD:) withObject:hudPrefixStr waitUntilDone:YES];
+                    [self textStateHUD:hudPrefixStr];
+                    if ([dataObj[@"fav_data"][@"fav_img"] isKindOfClass:[NSArray class]]) {
+                        favimgArray = dataObj[@"fav_data"][@"fav_img"];
+                        allVO.fav_count = dataObj[@"fav_data"][@"fav_count"];
+                        
+                        productDict.IsFaved = @YES;
+                        //一个section刷新
+                        [self.tableView reloadData];
+                        
+                        [self.tableView selectRowAtIndexPath:[NSIndexPath indexPathForRow:0 inSection:3] animated:YES scrollPosition:UITableViewScrollPositionTop];
                     }
                     [self performSelectorOnMainThread:@selector(favOpSuccess) withObject:nil waitUntilDone:YES];
-                    
-                } else {
-                    if ([[dataObj objectForKey:@"code"] integerValue] == -4 && !_isFaved) {
-                        [self performSelectorOnMainThread:@selector(favOpSuccess) withObject:nil waitUntilDone:YES];
-                        return;
-                    }
-                    
-                    id messageObj = [dataObj objectForKey:@"msg"];
-                    if (messageObj) {
-                        if ([messageObj isKindOfClass:[NSString class]] && ![messageObj isEqualToString:@""]) {
-                            [self performSelectorOnMainThread:@selector(textStateHUD:) withObject:messageObj waitUntilDone:YES];
-                        } else {
-                            [self performSelectorOnMainThread:@selector(textStateHUD:) withObject:[hudPrefixStr stringByAppendingString:@"失败"] waitUntilDone:YES];
-                        }
-                    } else {
-                        [self performSelectorOnMainThread:@selector(textStateHUD:) withObject:[hudPrefixStr stringByAppendingString:@"失败"] waitUntilDone:YES];
-                    }
+                    return;
                 }
-            } else {
-                [self performSelectorOnMainThread:@selector(textStateHUD:) withObject:[hudPrefixStr stringByAppendingString:@"失败"] waitUntilDone:YES];
-            }
-        } else {
-            id messageObj = [respDict objectForKey:@"msg"];
-            if (messageObj) {
-                if ([messageObj isKindOfClass:[NSString class]] && ![messageObj isEqualToString:@""]) {
-                    [self performSelectorOnMainThread:@selector(textStateHUD:) withObject:messageObj waitUntilDone:YES];
-                } else {
-                    [self performSelectorOnMainThread:@selector(textStateHUD:) withObject:[hudPrefixStr stringByAppendingString:@"失败"] waitUntilDone:YES];
-                }
-            } else {
-                [self performSelectorOnMainThread:@selector(textStateHUD:) withObject:[hudPrefixStr stringByAppendingString:@"失败"] waitUntilDone:YES];
             }
         }
-    } else {
-        [self performSelectorOnMainThread:@selector(textStateHUD:) withObject:[hudPrefixStr stringByAppendingString:@"失败"] waitUntilDone:YES];
     }
+    
+    hudPrefixStr = @"喜欢失败";
+    [self performSelectorOnMainThread:@selector(textStateHUD:) withObject:hudPrefixStr waitUntilDone:YES];
 }
 
 - (void)favOpSuccess
@@ -1260,9 +1231,6 @@
 
 - (KTBaseRequest *)request
 {
-    NSString *userid = nil;
-    NSString *usertoken = nil;
-    
     if ([[[kata_UserManager sharedUserManager] userInfo] objectForKey:@"user_id"] && [[[[kata_UserManager sharedUserManager] userInfo] objectForKey:@"user_id"] isKindOfClass:[NSString class]] && ![[[[kata_UserManager sharedUserManager] userInfo] objectForKey:@"user_id"] isEqualToString:@""]) {
         userid = [[[kata_UserManager sharedUserManager] userInfo] objectForKey:@"user_id"];
     }
@@ -1291,6 +1259,8 @@
                     
                     if ([dataObj isKindOfClass:[NSDictionary class]]) {
                         DetailViewVO *vo = [DetailViewVO DetailViewVOWithDictionary:dataObj];
+                        
+                        allVO = vo;
                         
                         NSMutableArray *objArr = [[NSMutableArray alloc] init];
                         
@@ -1325,43 +1295,35 @@
                         }
                         
                         NSMutableArray *picsArray = [[NSMutableArray alloc] init];
+                        
+                        NSMutableArray *cellDataArr_new = [[NSMutableArray alloc] init];
                         if (vo.likeArray.count > 0) {
-                            NSMutableArray *cellDataArr = [[NSMutableArray alloc] init];
-                            LikeProductVO *likeVo;
-                            for (NSInteger i = 0; i < ceil((CGFloat)vo.likeArray.count / 3.0); i++) {
+                            HomeProductVO *likeVo;
+                            for (NSInteger i = 0; i < ceil((CGFloat)vo.likeArray.count / 2.0); i++) {
                                 NSMutableArray *cellArr = [[NSMutableArray alloc] init];
-                                if ([vo.likeArray objectAtIndex:i * 3] && [[vo.likeArray objectAtIndex:i * 3] isKindOfClass:[LikeProductVO class]]) {
-                                    [cellArr addObject:[vo.likeArray objectAtIndex:i * 3]];
-                                    likeVo = [vo.likeArray objectAtIndex:i * 3];
-                                    if (likeVo.imageUrl.length > 0 && !likeVo.imageUrl) {
-                                        [picsArray addObject:likeVo.imageUrl];
+                                if ([vo.likeArray objectAtIndex:i * 2] && [[vo.likeArray objectAtIndex:i * 2] isKindOfClass:[HomeProductVO class]]) {
+                                    [cellArr addObject:[vo.likeArray objectAtIndex:i * 2]];
+                                    likeVo = [vo.likeArray objectAtIndex:i * 2];
+                                    if (likeVo.pic.length > 0 && !likeVo.pic) {
+                                        [picsArray addObject:likeVo.pic];
                                     }
                                 }
                                 
-                                if (vo.likeArray.count > i * 3 + 1) {
-                                    if ([vo.likeArray objectAtIndex:i * 3 + 1] && [[vo.likeArray objectAtIndex:i * 3 + 1] isKindOfClass:[LikeProductVO class]]) {
-                                        [cellArr addObject:[vo.likeArray objectAtIndex:i * 3 + 1]];
-                                        likeVo = [vo.likeArray objectAtIndex:i * 3 + 1];
-                                        if (likeVo.imageUrl.length > 0 && !likeVo.imageUrl) {
-                                            [picsArray addObject:likeVo.imageUrl];
+                                if (vo.likeArray.count > i * 2 + 1) {
+                                    if ([vo.likeArray objectAtIndex:i * 2 + 1] && [[vo.likeArray objectAtIndex:i * 2 + 1] isKindOfClass:[HomeProductVO class]]) {
+                                        [cellArr addObject:[vo.likeArray objectAtIndex:i * 2 + 1]];
+                                        likeVo = [vo.likeArray objectAtIndex:i * 2 + 1];
+                                        if (likeVo.pic.length > 0 && !likeVo.pic) {
+                                            [picsArray addObject:likeVo.pic];
                                         }
                                     }
                                 }
-                                
-                                if (vo.likeArray.count > i * 3 + 2) {
-                                    if ([vo.likeArray objectAtIndex:i * 3 + 2] && [[vo.likeArray objectAtIndex:i * 3 + 2] isKindOfClass:[LikeProductVO class]]) {
-                                        [cellArr addObject:[vo.likeArray objectAtIndex:i * 3 + 2]];
-                                        likeVo = [vo.likeArray objectAtIndex:i * 3 + 2];
-                                        if (likeVo.imageUrl.length > 0 && !likeVo.imageUrl) {
-                                            [picsArray addObject:likeVo.imageUrl];
-                                        }
-                                    }
-                                }
-                                [cellDataArr addObject:cellArr];
+                                [cellDataArr_new addObject:cellArr];
                             }
                             
-                            likeArray = [NSMutableArray arrayWithArray:cellDataArr];
+                            likeArray = cellDataArr_new;
                         }
+
                         [picsArray addObject:brandDict.brandlogo?brandDict.brandlogo:@""];
                         [picsArray addObjectsFromArray:productDict.Pics];
                         NSMutableArray *picarry = [[NSMutableArray alloc] init];
@@ -1379,7 +1341,16 @@
                             objArr = nil;
                             self.statefulState = FTStatefulTableViewControllerStateEmpty;
                         }
-                        sectioNum = 3;
+                        
+                        if (vo.evaluate_list.count > 0) {
+                            eveluateArray = vo.evaluate_list;
+                        }
+                        
+                        if (vo.fav_img.count > 0) {
+                            favimgArray = vo.fav_img;
+                        }
+                        
+                        sectioNum = 5;
                         
                         return objArr;
                     }
@@ -1403,8 +1374,6 @@
 -(void)checkProuductRequst
 {
     NSString *cartid = nil;
-    NSString *userid = nil;
-    NSString *usertoken = nil;
     
     if ([[kata_CartManager sharedCartManager] hasCartID]) {
         cartid = [[kata_CartManager sharedCartManager] cartID];
@@ -1475,9 +1444,8 @@
 - (void)alertView:(UIAlertView *)alertView clickedButtonAtIndex:(NSInteger)buttonIndex
 {
     if (buttonIndex == 1 && alertView.tag == 88888888) {
-        
-        NSURL *hotLineURL = [NSURL URLWithString:[NSString stringWithFormat:@"tel://%@", [[NSUserDefaults standardUserDefaults] objectForKey:@"service_phone"]]];
-        [[UIApplication sharedApplication] openURL:hotLineURL];
+        NSString *telStr = [NSString stringWithFormat:@"tel://%@", [[NSUserDefaults standardUserDefaults] objectForKey:@"service_phone"]];
+        [[UIApplication sharedApplication] openURL:[NSURL URLWithString:telStr]];
     }
 
     if (buttonIndex == 0 && alertView.tag == 10002) {
@@ -1546,6 +1514,11 @@
 #pragma tableView delegate && datasource
 - (NSInteger)numberOfSectionsInTableView:(UITableView *)tableView
 {
+    if (productDict) {
+        if (!((UIButton *)btnArray[0]).selected) {
+            return sectioNum - 2;
+        }
+    }
     return sectioNum;
 }
 
@@ -1610,6 +1583,18 @@
             return 0;
         }
             break;
+        case 3:
+            if (favimgArray.count > 0) {
+                return 2;
+            }else{
+                return 0;
+            }
+            break;
+        case 4:
+            if (eveluateArray.count > 3) {
+                return 6;
+            }
+            return eveluateArray.count + 3;
         default:
             break;
     }
@@ -1650,8 +1635,8 @@
     if (index < productDict.Pics.count) {
         NSString *imageName = productDict.Pics[index];
         UIImageView *imageView = [[UIImageView alloc] initWithFrame:CGRectMake(0, 0, ScreenW, ScreenW)];
-        imageView.contentMode = UIViewContentModeScaleAspectFit;
-        [imageView sd_setImageWithURL:[NSURL URLWithString:imageName] placeholderImage:[UIImage imageNamed:@"place_2"]];
+        imageView.backgroundColor = LMH_COLOR_LIGHTLINE;
+        [imageView sd_setImageWithURL:[NSURL URLWithString:imageName] placeholderImage:nil];
         return imageView;
     }
     return nil;
@@ -1671,54 +1656,31 @@
     static NSString *const BRAND = @"BRAND";
     static NSString *const LIKE = @"LIKE";
     static NSString *const WAITTING = @"waitting";
+    static NSString *CELL_SECTION2_0 = @"SECTION2_0";
+    static NSString *CELL_SECTION2_1 = @"SECTION2_1";
+    static NSString *CELL_SECTION3_0 = @"SECTION3_0";
+    static NSString *CELL_SECTION3_1 = @"SECTION3_1";
+    static NSString *CELL_SECTION3_2_NONE = @"CELL_SECTION3_2_NONE";
+    static NSString *CELL_SECTION3_2 = @"SECTION3_2";
+    static NSString *CELL_SECTION3_3 = @"SECTION3_3";
     
     NSInteger row = indexPath.row;
     NSInteger section = indexPath.section;
     CGFloat w = CGRectGetWidth([[UIScreen mainScreen] bounds]);
     
-    if (self.listData.count > 0) {
+    if (allVO) {
         if (section == 0) {
             if (row == 0) {
                 UITableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:IMG];
                 if (!cell) {
                     cell = [[UITableViewCell alloc] initWithStyle:UITableViewCellStyleDefault reuseIdentifier:IMG];
-                }
-                
-                if (!_bannerFV) {
-                    _bannerFV = [[XLCycleScrollView alloc] initWithFrame:CGRectMake(0, 0, ScreenW, ScreenW) animationDuration:8];
+                    
+                    _bannerFV = [[XLCycleScrollView alloc] initWithFrame:CGRectMake(0, 0, ScreenW, ScreenW) animationDuration:0];
                     
                     _bannerFV.xldelegate = self;
                     _bannerFV.xldatasource = self;
                     [cell addSubview:_bannerFV];
-                }
-                
-//                if (!_newPersonPriceLabel) {
-//                    _newPersonPriceLabel = [[UILabel alloc]initWithFrame:CGRectMake(0, 370, ScreenW, 30)];
-//                    _newPersonPriceLabel.backgroundColor = [UIColor colorWithRed:0 green:0 blue:0 alpha:0.5];
-//                    NSString *exclusive;
-//                    CGFloat sive = [productDict.exclusive_price floatValue];
-//                    if ((sive * 10) - (int)(sive * 10) > 0) {
-//                        exclusive = [NSString stringWithFormat:@"%0.2f",[productDict.exclusive_price floatValue]];
-//                    } else if(sive - (int)sive > 0) {
-//                        exclusive = [NSString stringWithFormat:@"%0.1f",[productDict.exclusive_price floatValue]];
-//                    } else {
-//                        exclusive = [NSString stringWithFormat:@"%0.0f",[productDict.exclusive_price floatValue]];
-//                    }
-//                    _newPersonPriceLabel.text = [NSString stringWithFormat:@"新人专享价:￥%@",exclusive];
-//                    _newPersonPriceLabel.textColor = [UIColor colorWithRed:1 green:0.65 blue:0.23 alpha:1];
-//                    _newPersonPriceLabel.font = FONT( 16);
-//                    _newPersonPriceLabel.textAlignment = NSTextAlignmentCenter;
-//                    _newPersonPriceLabel.tag = 1098;
-//                }
-//                
-//                if ([productDict.is_exclusive boolValue]) {
-//                    [_newPersonPriceLabel setHidden:NO];
-//                    [cell addSubview:_newPersonPriceLabel];
-//                }else{
-//                    [_newPersonPriceLabel setHidden:YES];
-//                }
-                
-                if(!timeLbl){
+                    
                     timeLbl = [[UILabel alloc] initWithFrame:CGRectMake(0, ScreenW-20, ScreenW, 20)];
                     timeLbl.backgroundColor = [UIColor colorWithRed:0 green:0 blue:0 alpha:0.2];
                     [timeLbl setFont:LMH_FONT_13];
@@ -1765,22 +1727,17 @@
                 UITableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:TAG];
                 if (!cell) {
                     cell = [[UITableViewCell alloc] initWithStyle:UITableViewCellStyleDefault reuseIdentifier:TAG];
-                }
-                
-                if (!_priceView) {
+                    
                     _priceView = [[UIView alloc] initWithFrame:CGRectMake(12, 0, w - 20, 30)];
                     [_priceView setBackgroundColor:[UIColor clearColor]];
                     
-                    if (!__ourPriceLbl) { //卖价
-                        __ourPriceLbl = [[UILabel alloc] initWithFrame:CGRectZero];
-                        __ourPriceLbl.textColor = LMH_COLOR_SKIN;
-                        __ourPriceLbl.textAlignment = NSTextAlignmentCenter;
-                        __ourPriceLbl.lineBreakMode = NSLineBreakByTruncatingTail;
-                        __ourPriceLbl.numberOfLines = 1;
-                        __ourPriceLbl.font = LMH_FONT_16;
-                        
-                        [_priceView addSubview:__ourPriceLbl];
-                    }
+                    __ourPriceLbl = [[UILabel alloc] initWithFrame:CGRectZero];
+                    __ourPriceLbl.textColor = LMH_COLOR_SKIN;
+                    __ourPriceLbl.textAlignment = NSTextAlignmentCenter;
+                    __ourPriceLbl.lineBreakMode = NSLineBreakByTruncatingTail;
+                    __ourPriceLbl.numberOfLines = 1;
+                    __ourPriceLbl.font = LMH_FONT_16;
+                    [_priceView addSubview:__ourPriceLbl];
                     
                     if (productDict.OurPrice) {
                         NSString *OurPrice;
@@ -1799,16 +1756,13 @@
                     CGSize ourSize = [__ourPriceLbl.text sizeWithFont:__ourPriceLbl.font];
                     [__ourPriceLbl setFrame:CGRectMake(4, 0, ourSize.width, 30)];
                     
-                    if (!__marketPriceLbl) { //原价
-                        __marketPriceLbl = [[UILabel alloc] initWithFrame:CGRectZero];
-                        __marketPriceLbl.font = LMH_FONT_13;
-                        __marketPriceLbl.textColor = [UIColor colorWithRed:0.7 green:0.7 blue:0.7 alpha:1];
-                        __marketPriceLbl.textAlignment = NSTextAlignmentCenter;
-                        __marketPriceLbl.lineBreakMode = NSLineBreakByTruncatingTail;
-                        __marketPriceLbl.numberOfLines = 1;
-                        
-                        [_priceView addSubview:__marketPriceLbl];
-                    }
+                    __marketPriceLbl = [[UILabel alloc] initWithFrame:CGRectZero];
+                    __marketPriceLbl.font = LMH_FONT_13;
+                    __marketPriceLbl.textColor = [UIColor colorWithRed:0.7 green:0.7 blue:0.7 alpha:1];
+                    __marketPriceLbl.textAlignment = NSTextAlignmentCenter;
+                    __marketPriceLbl.lineBreakMode = NSLineBreakByTruncatingTail;
+                    __marketPriceLbl.numberOfLines = 1;
+                    [_priceView addSubview:__marketPriceLbl];
                     
                     if (productDict.MarketPrice) {
                         NSString *MarketPrice;
@@ -1830,16 +1784,14 @@
                     marketLine.backgroundColor = [UIColor colorWithRed:0.7 green:0.7 blue:0.7 alpha:1];
                     [__marketPriceLbl addSubview:marketLine];
                     
-                    if (!__saleTipLbl) {
-                        __saleTipLbl = [[UILabel alloc] initWithFrame:CGRectZero];
-                        __saleTipLbl.textColor = LMH_COLOR_GRAY;
-                        __saleTipLbl.textAlignment = NSTextAlignmentCenter;
-                        __saleTipLbl.lineBreakMode = NSLineBreakByTruncatingTail;
-                        __saleTipLbl.numberOfLines = 1;
-                        [__saleTipLbl setFont:[UIFont systemFontOfSize:13]];
-                        
-                        [_priceView addSubview:__saleTipLbl];
-                    }
+                    __saleTipLbl = [[UILabel alloc] initWithFrame:CGRectZero];
+                    __saleTipLbl.textColor = LMH_COLOR_GRAY;
+                    __saleTipLbl.textAlignment = NSTextAlignmentCenter;
+                    __saleTipLbl.lineBreakMode = NSLineBreakByTruncatingTail;
+                    __saleTipLbl.numberOfLines = 1;
+                    [__saleTipLbl setFont:[UIFont systemFontOfSize:13]];
+                    
+                    [_priceView addSubview:__saleTipLbl];
                     
                     //送多少金豆
                     UIImageView *jifenView = [[UIImageView alloc]initWithFrame:CGRectZero];
@@ -1857,23 +1809,30 @@
                     [jifenView setFrame:CGRectMake(12, CGRectGetMaxY(_priceView.frame)+5, jfSize.width+10, 20)];
                     [jifenLabel setFrame:CGRectMake(0, 0, jfSize.width+10, 20)];
                     [jifenView addSubview:jifenLabel];
-                    
+                    if (_productType > 0) {
+                        [jifenView removeFromSuperview];
+                    }
                     if (productDict.SaleTip && ![productDict.SaleTip isEqualToString:@""]) {
                         __saleTipLbl.text = [productDict.SaleTip stringByAppendingString:@"折"];
                         
                         CGSize tipSize = [__saleTipLbl.text sizeWithFont:__saleTipLbl.font];
                         [__saleTipLbl setFrame:CGRectMake(CGRectGetMaxX(jifenLabel.frame) + 10, CGRectGetMaxY(_priceView.frame)+5, tipSize.width + 8, 20)];
+                        
+                        if (_productType > 0) {
+                            [__saleTipLbl setFrame:CGRectMake(0, CGRectGetMaxY(_priceView.frame)+5, tipSize.width + 8, 20)];
+                        }
+                        
                         UIImageView *tipBg = [[UIImageView alloc] initWithFrame:__saleTipLbl.frame];
                         tipBg.image = [UIImage imageNamed:@"border"];
                         tipBg.layer.cornerRadius = 1;
                         [_priceView insertSubview:tipBg belowSubview:__saleTipLbl];
                     }
-                    
                     //收藏
                     collectionBtn = [UIButton buttonWithType:UIButtonTypeCustom];
+                    collectionBtn.contentHorizontalAlignment = UIControlContentHorizontalAlignmentCenter;
+                    collectionBtn.contentVerticalAlignment = UIControlContentHorizontalAlignmentCenter;
                     collectionBtn.backgroundColor = [UIColor clearColor];
-                    [collectionBtn setFrame:CGRectMake(ScreenW - 65*2 - 20 - 10, CGRectGetMaxY(_priceView.frame), 65, 25)];
-                    [collectionBtn setTitle:@"收藏" forState:UIControlStateNormal];
+                    [collectionBtn setFrame:CGRectMake(ScreenW/5*2, CGRectGetMaxY(_priceView.frame), (ScreenW/5*3-10)/2, 25)];
                     collectionBtn.titleLabel.font = FONT(15);
                     [collectionBtn setImage:[UIImage imageNamed:@"icon_collection"] forState:UIControlStateNormal];
                     _isFaved = ![productDict.IsFaved  boolValue];
@@ -1883,17 +1842,17 @@
                     [collectionBtn setTitleColor:[UIColor grayColor] forState:UIControlStateNormal];
                     [cell addSubview:collectionBtn];
                     
-                    //分享
-                    UIButton *shareBtn = [UIButton buttonWithType:UIButtonTypeCustom];
-                    shareBtn.backgroundColor = [UIColor clearColor];
-                    [shareBtn setFrame:CGRectMake(ScreenW - 65 - 20, CGRectGetMaxY(_priceView.frame), 65, 25)];
-                    [shareBtn setTitle:@"分享" forState:UIControlStateNormal];
-                    shareBtn.titleLabel.font = FONT(15);
-                    [shareBtn addTarget:self action:@selector(shareButtonPressed) forControlEvents:UIControlEventTouchUpInside];
-                    [shareBtn setImage:[UIImage imageNamed:@"icon_shareBtn"] forState:UIControlStateNormal];
-                    [shareBtn setImageEdgeInsets:UIEdgeInsetsMake(0, 0, 0, 12)];
-                    [shareBtn setTitleColor:[UIColor grayColor] forState:UIControlStateNormal];
-                    [cell addSubview:shareBtn];
+                    //评论
+                    eveluateBtn = [UIButton buttonWithType:UIButtonTypeCustom];
+                    eveluateBtn.contentHorizontalAlignment = UIControlContentHorizontalAlignmentRight;
+                    eveluateBtn.contentVerticalAlignment = UIControlContentHorizontalAlignmentCenter;
+                    [eveluateBtn setFrame:CGRectMake(CGRectGetMaxX(collectionBtn.frame), CGRectGetMaxY(_priceView.frame), (ScreenW/5*3-10)/2, 25)];
+                    eveluateBtn.titleLabel.font = FONT(15);
+                    [eveluateBtn addTarget:self action:@selector(eveluateClick) forControlEvents:UIControlEventTouchUpInside];
+                    [eveluateBtn setImage:LOCAL_IMG(@"new_coment") forState:UIControlStateNormal];
+                    [eveluateBtn setImageEdgeInsets:UIEdgeInsetsMake(0, 0, 0, 12)];
+                    [eveluateBtn setTitleColor:[UIColor grayColor] forState:UIControlStateNormal];
+                    [cell addSubview:eveluateBtn];
                     
                     //联系客服
                     UIButton *callBtn = [UIButton buttonWithType:UIButtonTypeCustom];
@@ -1907,11 +1866,16 @@
                     [callBtn addTarget:self action:@selector(callBtnClick) forControlEvents:UIControlEventTouchUpInside];
                     //[cell addSubview:callBtn];
                     
-                    UILabel *celllineLbl = [[UILabel alloc] initWithFrame:CGRectMake(12, CGRectGetMaxY(shareBtn.frame)+15, ScreenW - 24, 0.5)];
+                    UILabel *celllineLbl = [[UILabel alloc] initWithFrame:CGRectMake(12, CGRectGetMaxY(eveluateBtn.frame)+15, ScreenW - 24, 0.5)];
                     [celllineLbl setBackgroundColor:LMH_COLOR_LIGHTLINE];
                     [cell addSubview:celllineLbl];
+                    
+                    [cell.contentView addSubview:_priceView];
                 }
-                [cell.contentView addSubview:_priceView];
+                
+                [collectionBtn setTitle:[NSString stringWithFormat:@"喜欢(%d)",[allVO.fav_count intValue]] forState:UIControlStateNormal];
+                [eveluateBtn setTitle:[NSString stringWithFormat:@"评论(%d)",[allVO.evaluate_count intValue]] forState:UIControlStateNormal];
+                
                 cell.selectionStyle = UITableViewCellSelectionStyleNone;
                 
                 return cell;
@@ -1919,10 +1883,6 @@
                 UITableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:ACT];
                 if (!cell) {
                     cell = [[UITableViewCell alloc] initWithStyle:UITableViewCellStyleDefault reuseIdentifier:ACT];
-                    
-//                    UILabel *celllineLbl = [[UILabel alloc] initWithFrame:CGRectMake(0, 49, CGRectGetWidth(cell.frame), 1)];
-//                    [celllineLbl setBackgroundColor:[UIColor colorWithRed:0.86 green:0.86 blue:0.86 alpha:1]];
-//                    [cell addSubview:celllineLbl];
                 }
                 [cell.textLabel setText:productDict.eventArray[row - 3]];
                 [cell.textLabel setTextColor:[UIColor colorWithRed:0.27 green:0.27 blue:0.27 alpha:1]];
@@ -1937,8 +1897,8 @@
             if (!cell) {
                 cell = [[UITableViewCell alloc] initWithStyle:UITableViewCellStyleDefault reuseIdentifier:BRAND];
                 
-                UIImageView *imageview = [[UIImageView alloc] initWithFrame:CGRectMake(0, 0, ScreenW, 140*ScreenW/640)];
-                [imageview setImage:[UIImage imageNamed:@"img_reparations"]];
+                UIImageView *imageview = [[UIImageView alloc] initWithFrame:CGRectMake(0, 0, ScreenW, 101*ScreenW/360)];
+                [imageview setImage:[UIImage imageNamed:@"slogin.jpg"]];
                 [cell addSubview:imageview];
                 
             }
@@ -2329,22 +2289,178 @@
             }else if (((UIButton *)btnArray[3]).selected){
                 UITableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:LIKE];
                 if (!cell) {
-                    cell = [[KTOtherProductListviewTableViewCell alloc] initWithStyle:UITableViewCellStyleDefault reuseIdentifier:LIKE];
+                    cell = [[AloneProductCellTableViewCell alloc] initWithStyle:UITableViewCellStyleDefault reuseIdentifier:LIKE];
                 }
                 
                 if (likeArray.count > 0) {
-                    NSMutableArray *cellArr = likeArray[row];
                     
-                    [(KTOtherProductListviewTableViewCell *)cell setProductDataArr:cellArr];
-                    [(KTOtherProductListviewTableViewCell *)cell setProductCellDelegate:self];
+                    [(AloneProductCellTableViewCell*)cell setCellFrame:self.view.frame];
+                    [(AloneProductCellTableViewCell*)cell setDelegate:self];
+                    [(AloneProductCellTableViewCell*)cell setRow:row];
+                    
+                    [(AloneProductCellTableViewCell*)cell layoutUI:likeArray[row] andColnum:2 is_act:NO is_type:NO];
                 }
                 
                 cell.selectionStyle = UITableViewCellSelectionStyleNone;
                 return cell;
             }
             return nil;
+        }else if(section == 3){
+            if (row == 0) {
+                UITableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:CELL_SECTION2_0];
+                if (!cell) {
+                    cell = [[UITableViewCell alloc] initWithStyle:UITableViewCellStyleDefault reuseIdentifier:CELL_SECTION2_0];
+                    
+                    UILabel *lineLabel = [[UILabel alloc] initWithFrame:CGRectMake(10, 39.5, ScreenW-20,0.5)];
+                    lineLabel.backgroundColor = LMH_COLOR_LINE;
+                    [cell.contentView addSubview:lineLabel];
+                }
+                
+                UIImageView *imgView = (UIImageView*)[cell.contentView viewWithTag:3001];
+                if (!imgView) {
+                    imgView = [[UIImageView alloc] initWithFrame:CGRectMake(10, 11, 20, 18)];
+                    imgView.image = LOCAL_IMG(@"new_fav");
+                    imgView.tag = 3001;
+                    
+                    [cell.contentView addSubview:imgView];
+                }
+                
+                UILabel *textLabel = (UILabel *)[cell.contentView viewWithTag:3002];
+                if (!textLabel) {
+                    textLabel = [[UILabel alloc] initWithFrame:CGRectMake(CGRectGetMaxX(imgView.frame)+5, 0, ScreenW-CGRectGetMaxX(imgView.frame)-10, 40)];
+                    textLabel.font = LMH_FONT_15;
+                    textLabel.textColor = LMH_COLOR_BLACK;
+                    textLabel.tag = 3002;
+                    
+                    [cell.contentView addSubview:textLabel];
+                }
+                textLabel.text = [NSString stringWithFormat:@"%zi人喜欢了",[allVO.fav_count integerValue]];
+                
+                cell.selectionStyle = UITableViewCellSelectionStyleNone;
+                
+                return cell;
+            }else{
+                UITableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:CELL_SECTION2_1];
+                if (!cell) {
+                    cell = [[LMH_ImageTableViewCell alloc] initWithStyle:UITableViewCellStyleDefault reuseIdentifier:CELL_SECTION2_1];
+                }
+                [(LMH_ImageTableViewCell *)cell layoutUI:favimgArray];
+                
+                cell.selectionStyle = UITableViewCellSelectionStyleNone;
+                
+                return cell;
+            }
+        }else if(section == 4){
+            if (row == 0) {
+                UITableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:CELL_SECTION3_0];
+                if (!cell) {
+                    cell = [[UITableViewCell alloc] initWithStyle:UITableViewCellStyleDefault reuseIdentifier:CELL_SECTION3_0];
+                    
+                    UIImageView *imgView = [[UIImageView alloc] initWithFrame:CGRectMake(10, 11, 20, 18)];
+                    imgView.image = LOCAL_IMG(@"new_coment");
+                    [cell.contentView addSubview:imgView];
+                    
+                    UILabel *lineLabel = [[UILabel alloc] initWithFrame:CGRectMake(10, 39.5, ScreenW-20,0.5)];
+                    lineLabel.backgroundColor = LMH_COLOR_LINE;
+                    [cell.contentView addSubview:lineLabel];
+                }
+                
+                UILabel *textLabel = (UILabel *)[cell.contentView viewWithTag:3002];
+                if (!textLabel) {
+                    textLabel = [[UILabel alloc] initWithFrame:CGRectMake(33, 0, ScreenW-33, 40)];
+                    textLabel.font = LMH_FONT_15;
+                    textLabel.textColor = LMH_COLOR_BLACK;
+                    textLabel.tag = 3002;
+                    
+                    [cell.contentView addSubview:textLabel];
+                }
+                textLabel.text = [NSString stringWithFormat:@"评论(%zi)",[allVO.evaluate_count integerValue]];
+                
+                cell.selectionStyle = UITableViewCellSelectionStyleNone;
+                
+                return cell;
+            }else if(row <= (eveluateArray.count>3?3:eveluateArray.count)){
+                UITableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:CELL_SECTION3_1];
+                if (!cell) {
+                    cell = [[LMH_ReviewTableViewCell alloc] initWithStyle:UITableViewCellStyleDefault reuseIdentifier:CELL_SECTION3_1];
+                }
+                if (row <= eveluateArray.count) {
+                    [(LMH_ReviewTableViewCell *)cell layoutUI:eveluateArray[row-1]];
+                    [(LMH_ReviewTableViewCell *)cell setReviewDelegate:self];
+                }
+                
+                cell.selectionStyle = UITableViewCellSelectionStyleNone;
+                
+                return cell;
+            }else if(row == (eveluateArray.count>3?4:eveluateArray.count+1)){
+                if (eveluateArray.count <= 3) {
+                    UITableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:CELL_SECTION3_2_NONE];
+                    if (!cell) {
+                        cell = [[UITableViewCell alloc] initWithStyle:UITableViewCellStyleDefault reuseIdentifier:CELL_SECTION3_2_NONE];
+                    }
+                    
+                    return cell;
+                }
+                
+                UITableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:CELL_SECTION3_2];
+                if (!cell) {
+                    cell = [[UITableViewCell alloc] initWithStyle:UITableViewCellStyleDefault reuseIdentifier:CELL_SECTION3_2];
+                    
+                    UIButton *moreBtn = [[UIButton alloc] initWithFrame:CGRectMake(0, 0, ScreenW, 40)];
+                    [moreBtn setTitle:@"更多评论" forState:UIControlStateNormal];
+                    [moreBtn.titleLabel setFont:LMH_FONT_15];
+                    [moreBtn setTitleColor:LMH_COLOR_BLACK forState:UIControlStateNormal];
+                    [moreBtn setImage:LOCAL_IMG(@"new_rightrow") forState:UIControlStateNormal];
+                    moreBtn.contentHorizontalAlignment = UIControlContentHorizontalAlignmentCenter;
+                    moreBtn.contentVerticalAlignment = UIControlContentHorizontalAlignmentCenter;
+                    [moreBtn addTarget:self action:@selector(pushMoreVC) forControlEvents:UIControlEventTouchUpInside];
+                    
+                    //UIEdgeInsetsMake (CGFloat top, CGFloat left, CGFloat bottom, CGFloat right);
+                    [moreBtn setImageEdgeInsets:UIEdgeInsetsMake(0, 0, 0, -120)];
+                    [moreBtn setTitleEdgeInsets:UIEdgeInsetsMake(0, -50, 0, 0)];
+                    
+                    [cell.contentView addSubview:moreBtn];
+                    
+                    UILabel *lineLabel = [[UILabel alloc] initWithFrame:CGRectMake(10, 39.5, ScreenW-20,0.5)];
+                    lineLabel.backgroundColor = LMH_COLOR_LINE;
+                    [cell.contentView addSubview:lineLabel];
+                }
+                
+                cell.selectionStyle = UITableViewCellSelectionStyleNone;
+                
+                return cell;
+            }else{
+                UITableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:CELL_SECTION3_3];
+                if (!cell) {
+                    cell = [[UITableViewCell alloc] initWithStyle:UITableViewCellStyleDefault reuseIdentifier:CELL_SECTION3_3];
+                    
+                    textField = [[UITextField alloc] initWithFrame:CGRectMake(10, 10, ScreenW-80, 30)];
+                    textField.placeholder = @"说点儿什么吧~";
+                    textField.backgroundColor = LMH_COLOR_LIGHTLINE;
+                    textField.font = LMH_FONT_15;
+                    textField.delegate = self;
+                    [cell.contentView addSubview:textField];
+                    
+                    reverBtn = [[UIButton alloc] initWithFrame:CGRectMake(ScreenW-60, 10, 50, 30)];
+                    [reverBtn setTitle:@"发表" forState:UIControlStateNormal];
+                    [reverBtn.titleLabel setFont:LMH_FONT_15];
+                    [reverBtn setTitleColor:LMH_COLOR_GRAY forState:UIControlStateNormal];
+                    reverBtn.layer.borderColor = LMH_COLOR_LINE.CGColor;
+                    reverBtn.layer.borderWidth = 0.5;
+                    [reverBtn addTarget:self action:@selector(currentClick) forControlEvents:UIControlEventTouchUpInside];
+                    [cell.contentView addSubview:reverBtn];
+                    
+                    UILabel *lineLabel = [[UILabel alloc] initWithFrame:CGRectMake(10, CGRectGetMaxY(reverBtn.frame)+9.5, ScreenW-20, 0.5)];
+                    lineLabel.backgroundColor = LMH_COLOR_LINE;
+                    [cell.contentView addSubview:lineLabel];
+                }
+                
+                cell.selectionStyle = UITableViewCellSelectionStyleNone;
+                
+                return cell;
+            }
         }
-    }else {
+    }else{
         UITableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:WAITTING];
         if (!cell) {
             cell = [[UITableViewCell alloc] initWithStyle:UITableViewCellStyleDefault reuseIdentifier:WAITTING];
@@ -2367,6 +2483,11 @@
         return 0;
     }else if (section == 2){
         return 40;
+    }else if(section == 3){
+        if (favimgArray.count > 0) {
+            return 10;
+        }
+        return 0;
     }
     return 10;
 }
@@ -2393,7 +2514,7 @@
             return 30;
         }
     } else if (section == 1){
-        return 80;
+        return 101*ScreenW/360;
     }else if(section == 2){
         if (((UIButton *)btnArray[0]).selected) {
             NSInteger row = indexPath.row;
@@ -2557,23 +2678,58 @@
             }
             return 40;
         }else if (((UIButton *)btnArray[3]).selected){
-            return (ScreenW - 20)/3/100 *170;
+            return (ScreenW-30)/2+75;
+        }
+    }else if(section == 3){
+        if (row == 0) {
+            return 40;
+        }else{
+            CGFloat offsetX = (ScreenW-20)/27;//7(图像个数)*3(占比)+6(间隔个数)=27(除去两边的空白的份数)
+            CGFloat imgX = offsetX*3;
+            NSInteger imgcount = favimgArray.count + 1;
+            CGFloat imgH = 10+ceilf((imgcount>14?14:imgcount)/7.0)*(imgX+offsetX);
+            
+            return imgH;
+        }
+    }else if(section == 4){
+        if (row == 0) {
+            return 40;
+        }else if(row <= (eveluateArray.count>3?3:eveluateArray.count)){
+            CGFloat imgX = (ScreenW-20)/9;
+            
+            LMH_EvaluatedVO *vo = eveluateArray[row - 1];
+            if (vo.content) {
+                CGSize revH = [vo.content sizeWithFont:LMH_FONT_12 constrainedToSize:CGSizeMake(ScreenW-imgX-60, 10000)];
+                if (revH.height > 18) {
+                    return 80;
+                }else{
+                    return 45+revH.height;
+                }
+            }
+            return 0;
+        }else if(row == (eveluateArray.count>3?4:eveluateArray.count+1)){
+            if (eveluateArray.count > 3) {
+                return 40;
+            }
+        }else if(row == eveluateArray.count>3?5:eveluateArray.count+2){
+            return 70;
         }
     }
     
     return 0;
 }
-//#pragma mark 点击进入专场按钮
-//-(void)specialBtnClick
-//{
-//    kata_ProductListViewController *productListVC = [[kata_ProductListViewController alloc]
-//                                                     initWithBrandID:[brandDict.brandID intValue]
-//                                                     andTitle:brandDict.brandTitle
-//                                                     andProductID:0
-//                                                     isChannel:NO];
-//    productListVC.navigationController = self.navigationController;
-//    [self.navigationController pushViewController:productListVC animated:YES];
-//}
+
+- (void)pushMoreVC{
+    LMH_EvaluateViewController *evaluateVC = [[LMH_EvaluateViewController alloc] initWithEventID:[NSNumber numberWithInteger:_productid] andType:1];
+    evaluateVC.navigationController = self.navigationController;
+    evaluateVC.hidesBottomBarWhenPushed = YES;
+    [self.navigationController pushViewController:evaluateVC animated:YES];
+}
+
+- (void)eveluateClick{
+    [self.tableView selectRowAtIndexPath:[NSIndexPath indexPathForRow:0 inSection:4] animated:YES scrollPosition:UITableViewScrollPositionTop];
+    [textField becomeFirstResponder];
+}
 
 #pragma mark - Login Delegate
 - (void)didLogin
@@ -2638,7 +2794,7 @@
 }
 
 #pragma mark 商品规格选择delegate
--(void)select_Color:(NSInteger)colorid select_Size:(NSInteger)sizeid total_Num:(NSInteger)qty
+-(void)select_Color:(NSInteger)colorid select_Size:(NSInteger)sizeid total_Num:(NSInteger)qty andSku_id:(NSString *)sku_id
 {
     if (colorid >= 0 || sizeid >= 0) {
         _colorid = colorid;
@@ -2705,14 +2861,182 @@
     [self loadNewer];
 }
 
+- (BOOL)checkLogin{
+    if ([[[kata_UserManager sharedUserManager] userInfo] objectForKey:@"user_id"] && [[[[kata_UserManager sharedUserManager] userInfo] objectForKey:@"user_id"] isKindOfClass:[NSString class]] && ![[[[kata_UserManager sharedUserManager] userInfo] objectForKey:@"user_id"] isEqualToString:@""]) {
+        userid = [[[kata_UserManager sharedUserManager] userInfo] objectForKey:@"user_id"];
+    }
+    
+    if ([[[kata_UserManager sharedUserManager] userInfo] objectForKey:@"user_token"] && [[[[kata_UserManager sharedUserManager] userInfo] objectForKey:@"user_token"] isKindOfClass:[NSString class]] && ![[[[kata_UserManager sharedUserManager] userInfo] objectForKey:@"user_token"] isEqualToString:@""]) {
+        usertoken = [[[kata_UserManager sharedUserManager] userInfo] objectForKey:@"user_token"];
+    }
+    
+    if (userid.length <= 0) {
+        [kata_LoginViewController showInViewController:self];
+        return NO;
+    }
+    
+    return YES;
+}
+
+//评论
+- (void )evaluateRequest
+{
+    if (![self checkLogin]) {
+        return;
+    }
+    
+    [self loadHUD];
+    KTBaseRequest *req = [[KTBaseRequest alloc] init];
+    
+    NSMutableDictionary *paramsDict = [req params];
+    
+    NSMutableDictionary *dict = [NSMutableDictionary dictionary];
+    [dict setObject:[NSNumber numberWithInteger:_productid] forKey:@"id"];
+    [dict setObject:@"goods" forKey:@"type"];
+    [dict setObject:eveluateTent forKey:@"content"];
+    [dict setObject:eveluatesmsID forKey:@"reply_id"];
+    [dict setObject:eveluateUserid forKey:@"reply_user_id"];
+    [dict setObject:userid forKey:@"user_id"];
+    [dict setObject:usertoken forKey:@"user_token"];
+    
+    [paramsDict setObject:dict forKey:@"params"];
+    [paramsDict setObject:@"add_evaluate" forKey:@"method"];
+    
+    KTProxy *proxy = [KTProxy loadWithRequest:req completed:^(NSString *resp, NSStringEncoding encoding) {
+        [self hideHUD];
+        [self performSelectorOnMainThread:@selector(evaluateResponse:) withObject:resp waitUntilDone:YES];
+    } failed:^(NSError *error) {
+        [self hideHUD];
+        [self performSelectorOnMainThread:@selector(textStateHUD:) withObject:@"网络错误" waitUntilDone:YES];
+    }];
+    
+    [proxy start];
+}
+
+- (void)evaluateResponse:(NSString *)resp
+{
+    if (resp) {
+        NSData *respData = [resp dataUsingEncoding:NSUTF8StringEncoding allowLossyConversion:YES];
+        NSDictionary *respDict = [NSJSONSerialization JSONObjectWithData:respData options:NSJSONReadingMutableLeaves error:nil];
+        
+        NSString *statusStr = [respDict objectForKey:@"status"];
+        
+        if ([statusStr isEqualToString:@"OK"]) {
+            if (respDict[@"data"] != nil && ![respDict[@"data"] isEqual:[NSNull null]] && [respDict[@"data"] isKindOfClass:[NSDictionary class]]) {
+                LMH_EventVO *eVO = [LMH_EventVO LMH_EventVOWithDictionary:respDict[@"data"]];
+                allVO.evaluate_count = eVO.evaluate_count;
+                eveluateArray = eVO.evaluate_list;
+                
+                keyView.textField.text = @"";
+                textField.text = @"";
+                
+                //一个section刷新
+                [self.tableView reloadData];
+                [self textStateHUD:@"评论成功"];
+                return;
+            }
+        }
+    }
+    [self textStateHUD:@"网络问题，请稍后重试"];
+}
+
+//发送评论
+- (void)currentClick{
+    [textField resignFirstResponder];
+    [keyView.textField resignFirstResponder];
+    
+    eveluateTent = textField.text;
+    eveluateTent =[eveluateTent stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceCharacterSet]];
+    //过滤中间空格
+    eveluateTent = [eveluateTent stringByReplacingOccurrencesOfString:@" " withString:@""];
+    
+    if (eveluateTent.length > 0) {
+        eveluateTent = textField.text;
+    }else{
+        return;
+    }
+    eveluateUserid = @0;
+    eveluatesmsID = @0;
+    
+    [self evaluateRequest];
+}
+
+#pragma mark - 回复按钮点击后的代理
+- (void)sendSms:(LMH_EvaluatedVO *)evaVO{
+    textField.text = @"";
+    keyView.hidden = NO;
+    [keyView.textField becomeFirstResponder];
+    
+    eveluateUserid = evaVO.reply_user_id?evaVO.reply_user_id:@0;
+    eveluatesmsID = evaVO.evaluaid?evaVO.evaluaid:@0;
+}
+
+#pragma mark - 信息发送按钮点击后的代理
+- (void)keySendSms:(NSString *)smsInfo{
+    keyView.hidden = YES;
+    [keyView.textField resignFirstResponder];
+    [textField resignFirstResponder];
+    
+    eveluateTent = keyView.textField.text;
+    eveluateTent =[eveluateTent stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceCharacterSet]];
+    //过滤中间空格
+    eveluateTent = [eveluateTent stringByReplacingOccurrencesOfString:@" " withString:@""];
+    
+    if (eveluateTent.length > 0) {
+        eveluateTent = keyView.textField.text;
+    }else{
+        return;
+    }
+    [self evaluateRequest];
+}
+
+- (void)keyHeight:(CGFloat)height{
+    CGRect frame = vFrame;
+    if (keyView.textField.isFirstResponder || textField.isFirstResponder) {
+        frame.size.height -= height - BOTTOMHEIGHT +10;
+    }
+    self.tableView.frame = frame;
+}
+
+- (void)textFieldDidBeginEditing:(UITextField *)textField{
+    keyView.textField.text = @"";
+}
+
+- (void)scrollViewWillBeginDecelerating:(UIScrollView *)scrollView{
+    if (textField.isFirstResponder) {
+        return;
+    }
+    keyView.hidden = YES;
+    [keyView.textField resignFirstResponder];
+    
+    self.tableView.frame = vFrame;
+}
+
+- (void) keyboardWasShow:(NSNotification *) notif{
+    NSDictionary *info = [notif userInfo];
+    CGRect endKeyboardRect = [[info objectForKey:UIKeyboardFrameEndUserInfoKey] CGRectValue];
+    CGFloat hOffset = endKeyboardRect.size.height;
+    
+    [self keyHeight:hOffset];
+}
+
+-(void)keyboardHide:(UITapGestureRecognizer*)tap{
+    keyView.hidden = YES;
+    [keyView.textField resignFirstResponder];
+    [textField resignFirstResponder];
+    
+    self.tableView.frame = vFrame;
+}
+
 #pragma mark - KTProductListTableViewCell Delegate
-- (void)tapAtProduct:(LikeProductVO *)likevo
+- (void)tapAtItem:(HomeProductVO *)pvo
 {
     _productType = 0;
     _seckillID = -1;
-    kata_ProductDetailViewController *detailVC = [[kata_ProductDetailViewController alloc] initWithProductID:[likevo.productID integerValue] andType:[NSNumber numberWithInteger:_productType ] andSeckillID:_seckillID];
-    detailVC.navigationController = self.navigationController;
-    detailVC.hidesBottomBarWhenPushed = YES;
-    [self.navigationController pushViewController:detailVC animated:YES];
+    // 商品详情
+    kata_ProductDetailViewController *vc = [[kata_ProductDetailViewController alloc] initWithProductID:[pvo.product_id integerValue] andType:[NSNumber numberWithInteger:_productType] andSeckillID:_seckillID];
+    vc.navigationController = self.navigationController;
+    vc.hidesBottomBarWhenPushed = YES;
+    [self.navigationController pushViewController:vc animated:YES];
 }
 @end

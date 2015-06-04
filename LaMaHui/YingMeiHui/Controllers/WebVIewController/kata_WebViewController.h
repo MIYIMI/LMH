@@ -9,9 +9,9 @@
 #import "FTBaseViewController.h"
 
 #import "kata_UserManager.h"
-//#import "kata_LoginViewController.h"
+#import "NJKScrollFullScreen.h"
 
-@interface kata_WebViewController : FTBaseViewController <UIWebViewDelegate>
+@interface kata_WebViewController : FTBaseViewController <UIWebViewDelegate,NJKScrollFullscreenDelegate>
 
 @property(nonatomic,strong)NSString *userID;
 

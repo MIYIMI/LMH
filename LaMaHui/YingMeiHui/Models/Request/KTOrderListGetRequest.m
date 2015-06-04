@@ -33,7 +33,7 @@
         if (pagesize != -1) {
             [subParams setObject:[NSNumber numberWithInteger:pagesize] forKey:@"page_size"];
         } else {
-            [subParams setObject:[NSNumber numberWithInteger:20] forKey:@"page_size"];
+            [subParams setObject:[NSNumber numberWithInteger:5] forKey:@"page_size"];
         }
         
         if (pageno != -1) {

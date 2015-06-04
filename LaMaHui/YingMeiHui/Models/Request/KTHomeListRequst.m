@@ -38,6 +38,9 @@
             [subParams setObject:[NSNumber numberWithInteger:1] forKey:@"page_no"];
         }
         
+        NSString *secret = [[NSUserDefaults standardUserDefaults] objectForKey:@"home_secret"];
+        [subParams setObject:secret?secret:@"1234567890" forKey:@"app_cache_secret"];
+        
         NSMutableDictionary *paramsDict = [self params];
         [paramsDict setObject:subParams forKey:@"params"];
     }

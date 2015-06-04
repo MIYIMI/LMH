@@ -130,7 +130,7 @@
         picStr = _model.pic;
     }
     
-    [_picView sd_setImageWithURL:[NSURL URLWithString:picStr] placeholderImage:[UIImage imageNamed:@"productph"]];
+    [_picView sd_setImageWithURL:[NSURL URLWithString:picStr] placeholderImage:nil];
     _limitedNumberLabel.text = [NSString stringWithFormat:@"限量%@件",_model.stock];
     NSString *salesPrice;
     CGFloat bfloat = [_model.market_price floatValue];

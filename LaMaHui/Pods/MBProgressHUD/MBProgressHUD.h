@@ -1,12 +1,12 @@
 //
 //  MBProgressHUD.h
-//  Version 0.9
+//  Version 0.9.1
 //  Created by Matej Bukovinski on 2.4.09.
 //
 
 // This code is distributed under the terms and conditions of the MIT license. 
 
-// Copyright (c) 2013 Matej Bukovinski
+// Copyright (c) 2009-2015 Matej Bukovinski
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -33,7 +33,7 @@
 @protocol MBProgressHUDDelegate;
 
 
-typedef enum {
+typedef NS_ENUM(NSInteger, MBProgressHUDMode) {
 	/** Progress is shown using an UIActivityIndicatorView. This is the default. */
 	MBProgressHUDModeIndeterminate,
 	/** Progress is shown using a round, pie-chart like, progress view. */
@@ -46,16 +46,16 @@ typedef enum {
 	MBProgressHUDModeCustomView,
 	/** Shows only labels */
 	MBProgressHUDModeText
-} MBProgressHUDMode;
+};
 
-typedef enum {
+typedef NS_ENUM(NSInteger, MBProgressHUDAnimation) {
 	/** Opacity animation */
 	MBProgressHUDAnimationFade,
 	/** Opacity + scale animation */
 	MBProgressHUDAnimationZoom,
 	MBProgressHUDAnimationZoomOut = MBProgressHUDAnimationZoom,
 	MBProgressHUDAnimationZoomIn
-} MBProgressHUDAnimation;
+};
 
 
 #ifndef MB_INSTANCETYPE
@@ -319,7 +319,7 @@ typedef void (^MBProgressHUDCompletionBlock)();
 /** 
  * The opacity of the HUD window. Defaults to 0.8 (80% opacity). 
  */
-@property (assign) CGFloat opacity;
+@property (assign) float opacity;
 
 /**
  * The color of the HUD window. Defaults to black. If this property is set, color is set using
@@ -331,24 +331,24 @@ typedef void (^MBProgressHUDCompletionBlock)();
 /** 
  * The x-axis offset of the HUD relative to the centre of the superview. 
  */
-@property (assign) CGFloat xOffset;
+@property (assign) float xOffset;
 
 /** 
  * The y-axis offset of the HUD relative to the centre of the superview. 
  */
-@property (assign) CGFloat yOffset;
+@property (assign) float yOffset;
 
 /**
  * The amount of space between the HUD edge and the HUD elements (labels, indicators or custom views). 
  * Defaults to 20.0
  */
-@property (assign) CGFloat margin;
+@property (assign) float margin;
 
 /**
  * The corner radius for the HUD
  * Defaults to 10.0
  */
-@property (assign) CGFloat cornerRadius;
+@property (assign) float cornerRadius;
 
 /** 
  * Cover the HUD background view with a radial gradient. 
@@ -364,14 +364,14 @@ typedef void (^MBProgressHUDCompletionBlock)();
  * Grace time functionality is only supported when the task status is known!
  * @see taskInProgress
  */
-@property (assign) CGFloat graceTime;
+@property (assign) float graceTime;
 
 /**
  * The minimum time (in seconds) that the HUD is shown. 
  * This avoids the problem of the HUD being shown and than instantly hidden.
  * Defaults to 0 (no minimum show time).
  */
-@property (assign) CGFloat minShowTime;
+@property (assign) float minShowTime;
 
 /**
  * Indicates that the executed operation is in progress. Needed for correct graceTime operation.
@@ -418,7 +418,7 @@ typedef void (^MBProgressHUDCompletionBlock)();
 /** 
  * The progress of the progress indicator, from 0.0 to 1.0. Defaults to 0.0. 
  */
-@property (assign) CGFloat progress;
+@property (assign) float progress;
 
 /**
  * The minimum size of the HUD bezel. Defaults to CGSizeZero (no minimum size).
@@ -462,7 +462,7 @@ typedef void (^MBProgressHUDCompletionBlock)();
 /**
  * Progress (0.0 to 1.0)
  */
-@property (nonatomic, assign) CGFloat progress;
+@property (nonatomic, assign) float progress;
 
 /**
  * Indicator progress color.
@@ -492,7 +492,7 @@ typedef void (^MBProgressHUDCompletionBlock)();
 /**
  * Progress (0.0 to 1.0)
  */
-@property (nonatomic, assign) CGFloat progress;
+@property (nonatomic, assign) float progress;
 
 /**
  * Bar border line color.

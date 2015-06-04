@@ -17,14 +17,14 @@
 #import "CartInfo.h"
 #import "WXPayInfo.h"
 #import "KTWXpayRequest.h"
-#import "KTOtherProductListviewTableViewCell.h"
+#import "AloneProductCellTableViewCell.h"
 #import "kata_ProductDetailViewController.h"
 #import "LikeProductVO.h"
 #import <AlipaySDK/AlipaySDK.h>
 #define TABLEVIEWCOLOR      [UIColor colorWithRed:0.96 green:0.96 blue:0.96 alpha:1]
 #define BOTTOMHEIGHT        45
 
-@interface kata_CashFailedViewController ()<KTOtherProductListviewTableViewCellDelegate>
+@interface kata_CashFailedViewController ()<AloneProductCellTableViewCellDelgate>
 {
     UIView *_bottomView;
     UIButton *_payBtn;
@@ -44,11 +44,10 @@
     NSString *_orderID;
     NSNumber *_orderFee;
     BOOL _type;
+    
     //商品类型
-    NSInteger _productType;
-    NSInteger _seckillID;
     NSInteger _productid;
-    NSMutableArray *likeArray;
+    NSArray *likeArray;
 }
 
 @property (nonatomic) NSInteger paymentID;
@@ -132,7 +131,6 @@
 
 -(void)viewDidAppear:(BOOL)animated{
     [super viewDidAppear:animated];
-    [[(kata_AppDelegate *)[[UIApplication sharedApplication] delegate] deckController] setPanningMode:IIViewDeckNoPanning];
 }
 
 - (void)didReceiveMemoryWarning
@@ -174,16 +172,25 @@
     UILabel *getJifenLabel = [[UILabel alloc]initWithFrame:CGRectMake(10, 50, ScreenW - 20, 0)];
     getJifenLabel.hidden = YES;
     
-    if(_type && _isPayed){ //成功
-        getJifenLabel.frame = CGRectMake(10, 50, ScreenW - 20, 40);
+    CGFloat jifenHight = CGRectGetMaxY(getJifenLabel.frame) +10;
+    if(_type && _isPayed && [self.get_creditStr integerValue] >= 0){ //成功
+        getJifenLabel.frame = CGRectMake(10, 50, ScreenW - 20, 20);
         getJifenLabel.backgroundColor = [UIColor clearColor];
         getJifenLabel.textAlignment = NSTextAlignmentCenter;
         getJifenLabel.text = [NSString stringWithFormat:@"本次购物已获得%@金豆",self.get_creditStr];
         getJifenLabel.font = FONT(20);
         getJifenLabel.textColor = [UIColor grayColor];
         [header addSubview:getJifenLabel];
+        
+        UILabel *tsLbl = [[UILabel alloc] initWithFrame:CGRectMake(0, CGRectGetMaxY(getJifenLabel.frame)+5, ScreenW, 20)];
+        tsLbl.text = @"将在14天后生效使用哦!";
+        tsLbl.textColor = LMH_COLOR_LIGHTGRAY;
+        tsLbl.font = LMH_FONT_12;
+        tsLbl.textAlignment = NSTextAlignmentCenter;
+        [header addSubview:tsLbl];
+        
+        jifenHight = CGRectGetMaxY(tsLbl.frame) +10;
     }
-    CGFloat jifenHight = CGRectGetMaxY(getJifenLabel.frame) +10;
     
     UIImageView *failedImage = [[UIImageView alloc]initWithFrame:CGRectMake(50, jifenHight, 80*ScreenW/320, 110*ScreenW/320)];
     failedImage.image = [UIImage imageNamed:@"payFailed_cryChilden"];
@@ -248,7 +255,7 @@
         [self.tableView setScrollEnabled:YES];
         [_bottomView setHidden:YES];
         [sepratelineView setHidden:YES];
-        msgLbl.text = @"付款成功";
+        msgLbl.text = @"付款成功!";
         getJifenLabel.hidden = NO;
         failedImage.image = [UIImage imageNamed:@"payVictory_smileChilden"];
         [header setFrame:CGRectMake(0, 0, ScreenW, CGRectGetMaxY(sepratelineView.frame)+15 + ScreenW/1242*241)];
@@ -615,32 +622,25 @@
         
         if ([statusStr isEqualToString:@"OK"]) {
             if ([respDict objectForKey:@"data"] != nil && [[respDict objectForKey:@"data"] isKindOfClass:[NSArray class]]) {
-                NSArray *lkArray = [LikeProductVO LikeProductVOWithArray:[respDict objectForKey:@"data"]];
+                likeArray = [HomeProductVO HomeProductVOListWithArray:[respDict objectForKey:@"data"]];
                 
-                if (lkArray.count > 0) {
-                    NSMutableArray *cellDataArr = [[NSMutableArray alloc] init];
-                    
-                    for (NSInteger i = 0; i < ceil((CGFloat)lkArray.count / 3.0); i++) {
+                NSMutableArray *cellDataArr_new = [[NSMutableArray alloc] init];
+                if (likeArray.count > 0) {
+                    for (NSInteger i = 0; i < ceil((CGFloat)likeArray.count / 2.0); i++) {
                         NSMutableArray *cellArr = [[NSMutableArray alloc] init];
-                        if ([lkArray objectAtIndex:i * 3] && [[lkArray objectAtIndex:i * 3] isKindOfClass:[LikeProductVO class]]) {
-                            [cellArr addObject:[lkArray objectAtIndex:i * 3]];
+                        if ([likeArray objectAtIndex:i * 2] && [[likeArray objectAtIndex:i * 2] isKindOfClass:[HomeProductVO class]]) {
+                            [cellArr addObject:[likeArray objectAtIndex:i * 2]];
                         }
                         
-                        if (lkArray.count > i * 3 + 1) {
-                            if ([lkArray objectAtIndex:i * 3 + 1] && [[lkArray objectAtIndex:i * 3 + 1] isKindOfClass:[LikeProductVO class]]) {
-                                [cellArr addObject:[lkArray objectAtIndex:i * 3 + 1]];
+                        if (likeArray.count > i * 2 + 1) {
+                            if ([likeArray objectAtIndex:i * 2 + 1] && [[likeArray objectAtIndex:i * 2 + 1] isKindOfClass:[HomeProductVO class]]) {
+                                [cellArr addObject:[likeArray objectAtIndex:i * 2 + 1]];
                             }
                         }
-                        
-                        if (lkArray.count > i * 3 + 2) {
-                            if ([lkArray objectAtIndex:i * 3 + 2] && [[lkArray objectAtIndex:i * 3 + 2] isKindOfClass:[LikeProductVO class]]) {
-                                [cellArr addObject:[lkArray objectAtIndex:i * 3 + 2]];
-                            }
-                        }
-                        [cellDataArr addObject:cellArr];
+                        [cellDataArr_new addObject:cellArr];
                     }
                     
-                    likeArray = [NSMutableArray arrayWithArray:cellDataArr];
+                    likeArray = cellDataArr_new;
                     [self.tableView reloadData];
                 }
             }
@@ -745,14 +745,15 @@
     if (_isPayed) {
         UITableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:LIKE];
         if (!cell) {
-            cell = [[KTOtherProductListviewTableViewCell alloc] initWithStyle:UITableViewCellStyleDefault reuseIdentifier:LIKE];
+            cell = [[AloneProductCellTableViewCell alloc] initWithStyle:UITableViewCellStyleDefault reuseIdentifier:LIKE];
         }
         
         if (likeArray.count > 0) {
-            NSMutableArray *cellArr = likeArray[row];
+            [(AloneProductCellTableViewCell*)cell setCellFrame:self.view.frame];
+            [(AloneProductCellTableViewCell*)cell setDelegate:self];
+            [(AloneProductCellTableViewCell*)cell setRow:row];
             
-            [(KTOtherProductListviewTableViewCell *)cell setProductDataArr:cellArr];
-            [(KTOtherProductListviewTableViewCell *)cell setProductCellDelegate:self];
+            [(AloneProductCellTableViewCell*)cell layoutUI:likeArray[row] andColnum:2 is_act:NO is_type:NO];
         }
         
         cell.selectionStyle = UITableViewCellSelectionStyleNone;
@@ -872,7 +873,7 @@
     
     if (section == 0) {
         if (_isPayed) {
-            return 170;
+            return (ScreenW-30)/2+75;
         }
         return 40;
     } else if (section == 1) {
@@ -946,10 +947,10 @@
 #pragma mark - KTPaymentTableViewCell Delegate
 - (void)bindWalletBtnPressed
 {
-    kata_WalletBindViewController *bindVC = [[kata_WalletBindViewController alloc] initWithNibName:nil bundle:nil];
-    bindVC.bindViewDelegate = self;
-    bindVC.navigationController = self.navigationController;
-    [self.navigationController pushViewController:bindVC animated:YES];
+//    kata_WalletBindViewController *bindVC = [[kata_WalletBindViewController alloc] initWithNibName:nil bundle:nil];
+//    bindVC.bindViewDelegate = self;
+//    bindVC.navigationController = self.navigationController;
+//    [self.navigationController pushViewController:bindVC animated:YES];
 }
 
 #pragma mark - kata_WalletBindViewControllerDelegate
@@ -977,10 +978,11 @@
     [_payBtn setEnabled:YES];
 }
 
+//支付宝返回结果
 - (void)processResult:(NSDictionary *)result
 {
     _type = YES;
-    int statusCode = [result[@"resultStatus"] integerValue];
+    NSInteger statusCode = [result[@"resultStatus"] integerValue];
     switch (statusCode) {
         case 9000:
 //            [self textStateHUD:@"支付成功"];
@@ -1008,7 +1010,6 @@
 //            [self textStateHUD:@"支付网络连接出错"];
             _isPayed = NO;
             break;
-            
         default:
             //交易失败
 //            [self textStateHUD:@"支付失败"];
@@ -1033,7 +1034,6 @@
         [self.contentView addSubview:stateHud];
     }
     stateHud.mode = MBProgressHUDModeIndeterminate;
-    stateHud.labelFont = [UIFont systemFontOfSize:14.0f];
     [stateHud show:YES];
 
     KTWXpayRequest *req = [[KTWXpayRequest alloc] initWithOrderID:_orderID];
@@ -1076,15 +1076,11 @@
                     // 在支付之前，如果应用没有注册到微信，应该先调用 [WXApi registerApp:appId] 将应用注册到微信
                     [WXApi safeSendReq:request];
                 }
-            }
-            else
-            {
+            }else{
                 [_payBtn setEnabled:YES];
                 [self textStateHUD:@"支付信息获取失败"];
             }
-        }
-        else
-        {
+        }else{
             [_payBtn setEnabled:YES];
             [self textStateHUD:@"支付信息获取失败"];
         }
@@ -1132,14 +1128,11 @@
 }
 
 #pragma mark - KTProductListTableViewCell Delegate
-- (void)tapAtProduct:(LikeProductVO *)likevo
+- (void)tapAtItem:(HomeProductVO *)pvo
 {
-    _productType = 0;
-    _seckillID = -1;
-    kata_ProductDetailViewController *detailVC = [[kata_ProductDetailViewController alloc] initWithProductID:[likevo.productID integerValue] andType:[NSNumber numberWithInteger:_productType ] andSeckillID:_seckillID];
-    detailVC.navigationController = self.navigationController;
-    detailVC.hidesBottomBarWhenPushed = YES;
-    [self.navigationController pushViewController:detailVC animated:YES];
+    kata_ProductDetailViewController *vc = [[kata_ProductDetailViewController alloc] initWithProductID:[pvo.product_id integerValue] andType:nil andSeckillID:-1];
+    vc.navigationController = self.navigationController;
+    vc.hidesBottomBarWhenPushed = YES;
+    [self.navigationController pushViewController:vc animated:YES];
 }
-
 @end

@@ -27,6 +27,6 @@ typedef enum {
 
 @protocol KTPaymentTableViewCellDelegate <NSObject>
 
-- (void)bindWalletBtnPressed;
+//- (void)bindWalletBtnPressed;
 
 @end

@@ -76,6 +76,11 @@
 - (UIView *)emptyView
 {
     UIView * v = [super emptyView];
+    
+    for (UIView *view in v.subviews) {
+        [view removeFromSuperview];
+    }
+    
     if (v) {
         CGFloat w = self.view.bounds.size.width;
         UIView *view = [[UIView alloc] initWithFrame:CGRectMake(0, 0, w, 105)];
@@ -96,6 +101,7 @@
     }
     return v;
 }
+
 
 - (KTBaseRequest *)request
 {

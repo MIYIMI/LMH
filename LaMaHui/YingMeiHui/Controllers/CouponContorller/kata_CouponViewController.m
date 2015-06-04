@@ -219,7 +219,7 @@
             [lineLabel setTextAlignment:NSTextAlignmentCenter];
             [lineLabel setFont:[UIFont systemFontOfSize:14.0]];
             
-            
+            cell.backgroundColor = [UIColor colorWithRed:0.93 green:0.93 blue:0.93 alpha:1];
             [cell addSubview:bgview];
             [cell addSubview:lineLabel];
         }

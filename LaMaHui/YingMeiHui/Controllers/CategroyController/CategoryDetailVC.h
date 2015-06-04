@@ -9,6 +9,7 @@
 #import "FTStatefulTableViewController.h"
 #import "kata_ProductDetailViewController.h"
 #import "AloneProductCellTableViewCell.h"
+#import "Category_selectView.h"
 
 @interface CategoryDetailVC : FTStatefulTableViewController<AloneProductCellTableViewCellDelgate>
 

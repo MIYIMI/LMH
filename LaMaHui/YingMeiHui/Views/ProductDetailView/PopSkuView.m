@@ -22,10 +22,12 @@
 @implementation PopSkuView{
     UIImageView *proimgView;
     ColorInfoVO *color_vo;
+    NSString *_skuID;
 }
 @synthesize popSkuViewDelegate;
 @synthesize skuTabeView;
 @synthesize _productVO;
+@synthesize _isShoppingCart;
 @synthesize _proid;
 
 -(id)initWithFrame:(CGRect)frame
@@ -37,8 +39,10 @@
         self.frame = frame;
         self.layer.masksToBounds = NO;
         self.layer.cornerRadius = 8;
+        _isShoppingCart = NO;
         
-        self.backgroundColor = [UIColor colorWithPatternImage:[UIImage imageNamed:@"popback"]];
+//        self.backgroundColor = [UIColor colorWithPatternImage:[UIImage imageNamed:@"popback"]];
+//        _scrollView.layer.contents = (id) [UIImage imageNamed:@"BigWhite_wave"].CGImage;
         _colorid = -1;
         _sizeid = -1;
         _qty = 1;
@@ -109,13 +113,16 @@
         if (cell == nil) {
             cell = [[UITableViewCell alloc] initWithStyle:UITableViewCellStyleDefault reuseIdentifier:CellIdentifier];
         }
-        
+        for (UIView *uview in cell.contentView.subviews) {
+            [uview removeFromSuperview];
+        }
         UILabel *lineLbl = [[UILabel alloc] initWithFrame:CGRectZero];
         
         if (_productVO.ColorInfo.count > 0 && row < cellRow - 1) {
-            if (!_colorPropView) {
+//            if (_colorPropView) {
                 _colorPropView = [[UIView alloc] initWithFrame:CGRectMake(0, 35, w, 35)];
-                
+            
+            //颜色模块
                 UILabel *propNameLbl = [[UILabel alloc] initWithFrame:CGRectZero];
                 [propNameLbl setBackgroundColor:[UIColor clearColor]];
                 [propNameLbl setTextColor:[UIColor colorWithRed:0.55 green:0.55 blue:0.55 alpha:1]];
@@ -155,22 +162,29 @@
                     [_colorPropView addSubview:propBtn];
                     xOffset = xOffset + targetWidth + 5;
                     
+                    //设置默认按钮
                     if (_productVO.ColorInfo.count <= 1 && [colorVO.SkuNum integerValue] > 0)
                     {
+                        _colorid = [colorVO.ColorID integerValue];
+                        propBtn.buttonState = KTPropButtonSelected;
+                    }
+                    if ([_productVO.check_color_id integerValue] == [colorVO.ColorID integerValue]) {
                         _colorid = [colorVO.ColorID integerValue];
                         propBtn.buttonState = KTPropButtonSelected;
                     }
                 }
                 [_colorPropView setFrame:CGRectMake(0, 0, w, yOffset + 35)];
                 [cell.contentView addSubview:_colorPropView];
-            }
+//            }
             [self layoutColorBtn];
             
             [lineLbl setFrame:CGRectMake(10, CGRectGetHeight(_colorPropView.frame)-1, (CGRectGetWidth(self.frame) -20), 1)];
+            [cell.contentView addSubview:lineLbl];
         }else if (_productVO.SizeInfo.count > 0 && row < cellRow -1) {
-            if (!_sizePropView) {
+//            if (!_sizePropView) {
                 _sizePropView = [[UIView alloc] initWithFrame:CGRectMake(0, 35, w, 35)];
-                
+            
+            //尺寸模块
                 UILabel *propNameLbl = [[UILabel alloc] initWithFrame:CGRectZero];
                 [propNameLbl setBackgroundColor:[UIColor clearColor]];
                 [propNameLbl setTextColor:[UIColor colorWithRed:0.55 green:0.55 blue:0.55 alpha:1]];
@@ -217,19 +231,24 @@
                         _sizeid = [sizeVO.SizeID integerValue];
                         propBtn.buttonState = KTPropButtonSelected;
                     }
+                    if ([_productVO.check_size_id integerValue] == [sizeVO.SizeID integerValue]) {
+                        _sizeid = [sizeVO.SizeID integerValue];
+                        propBtn.buttonState = KTPropButtonSelected;
+                    }
                 }
                 [_sizePropView setFrame:CGRectMake(0, 0, w, yOffset + 35)];
                 [cell.contentView addSubview:_sizePropView];
-            }
+//            }
             [self layoutSizeBtn];
             
             [lineLbl setFrame:CGRectMake(10, CGRectGetHeight(_sizePropView.frame)-1, (CGRectGetWidth(self.frame) -20), 1)];
+            [cell.contentView addSubview:lineLbl];
         }else{
             [lineLbl setFrame:CGRectMake(10, 79, (CGRectGetWidth(self.frame) -20), 1)];
+            [cell.contentView addSubview:lineLbl];
         }
         
         [lineLbl setBackgroundColor:[UIColor colorWithRed:0.89 green:0.89 blue:0.89 alpha:1]];
-        [cell addSubview:lineLbl];
         cell.selectionStyle = UITableViewCellSelectionStyleNone;
         
         return cell;
@@ -238,12 +257,13 @@
         UILabel *lineLbl = [[UILabel alloc] initWithFrame:CGRectZero];
         if (cell == nil) {
             cell = [[UITableViewCell alloc] initWithStyle:UITableViewCellStyleDefault reuseIdentifier:CellIdentifier];
-            [cell addSubview:lineLbl];
         }
-        
+        for (UIView *uview in cell.contentView.subviews) {
+            [uview removeFromSuperview];
+        }
         if (_productVO.SizeInfo.count > 0 && row < cellRow - 1) {
             
-            if (!_sizePropView) {
+//            if (!_sizePropView) {
                 _sizePropView = [[UIView alloc] initWithFrame:CGRectMake(0, 35, w, 35)];
                 
                 UILabel *propNameLbl = [[UILabel alloc] initWithFrame:CGRectZero];
@@ -292,24 +312,38 @@
                         _sizeid = [sizeVO.SizeID integerValue];
                         propBtn.buttonState = KTPropButtonSelected;
                     }
+                    if ([_productVO.check_size_id integerValue] == [sizeVO.SizeID integerValue]) {
+                        _sizeid = [sizeVO.SizeID integerValue];
+                        propBtn.buttonState = KTPropButtonSelected;
+                    }
                 }
                 [_sizePropView setFrame:CGRectMake(0, 0, w, yOffset + 35)];
                 [cell.contentView addSubview:_sizePropView];
-            }
+//            }
             [self layoutSizeBtn];
             
             [lineLbl setFrame:CGRectMake(10, CGRectGetHeight(_sizePropView.frame) - 1, (CGRectGetWidth(self.frame) -20), 1)];
+            [cell.contentView addSubview:lineLbl];
         }else{
-            if (!_selectView) {
-                _selectView = [[UIView alloc] initWithFrame:CGRectMake(0, 0, CGRectGetWidth(cell.frame), 80)];
-                
+//            if (!_selectView) {
+            for (UIView *sview in _selectView.subviews) {
+                [sview removeFromSuperview];
+            }
+                _selectView = [[UIView alloc] initWithFrame:CGRectMake(0, 0, ScreenW, 80)];
+           
+            //盘点是否是购物车界面 是否隐藏数量选择按钮    是：yes  否：no
+            if (_isShoppingCart) {
+                _selectView.hidden = YES;
+            }
+            
+            
                 UILabel *titleLbl = [[UILabel alloc] initWithFrame:CGRectMake(12, 0, 40, 35)];
                 [titleLbl setText:@"数量"];
                 [titleLbl setTextColor:[UIColor colorWithRed:0.27 green:0.27 blue:0.27 alpha:1]];
                 [titleLbl setFont:[UIFont systemFontOfSize:15.0]];
                 [_selectView addSubview:titleLbl];
                 
-                if (!_minusBtn) {
+//                if (!_minusBtn) {
                     _minusBtn = [[UIButton alloc] initWithFrame:CGRectMake(8, 32, 40, 40)];
                     [_minusBtn setImage:[UIImage imageNamed:@"minus_normal"] forState:UIControlStateNormal];
                     [_minusBtn setImage:[UIImage imageNamed:@"minus_selected"] forState:UIControlStateSelected];
@@ -317,9 +351,9 @@
                     [_minusBtn setContentMode:UIViewContentModeCenter];
                     [_minusBtn addTarget:self action:@selector(minusBtnPressed) forControlEvents:UIControlEventTouchUpInside];
                     [_selectView addSubview:_minusBtn];
-                }
-                
-                if (!_countTF) {
+//                }
+            
+//                if (!_countTF) {
                     _countTF = [[BOKUNoActionTextField alloc] initWithFrame:CGRectMake(CGRectGetMaxX(_minusBtn.frame)-5, 37, 45, 30)];
                     [_countTF setContentVerticalAlignment:UIControlContentVerticalAlignmentCenter];
                     [_countTF setTextAlignment:NSTextAlignmentCenter];
@@ -335,9 +369,9 @@
                     _qty = [_productVO.buy_min integerValue]>1?[_productVO.buy_min integerValue]:1;
                     [_countTF setText:[NSString stringWithFormat:@"%zi", _qty]];
                     [_selectView addSubview:_countTF];
-                }
-                
-                if (!_plusBtn) {
+//                }
+            
+//                if (!_plusBtn) {
                     _plusBtn = [[UIButton alloc] initWithFrame:CGRectMake(CGRectGetMaxX(_countTF.frame)-5, 32, 40, 40)];
                     [_plusBtn setImage:[UIImage imageNamed:@"plus_normal"] forState:UIControlStateNormal];
                     [_plusBtn setImage:[UIImage imageNamed:@"plus_selected"] forState:UIControlStateSelected];
@@ -346,7 +380,7 @@
                     [_plusBtn addTarget:self action:@selector(plusBtnPressed) forControlEvents:UIControlEventTouchUpInside];
                     [_plusBtn setEnabled:YES];
                     [_selectView addSubview:_plusBtn];
-                }
+//                }
                 if ([_countTF.text integerValue] <= [_productVO.buy_min integerValue]) {
                     [_minusBtn setEnabled:NO];
                 }else{
@@ -355,8 +389,8 @@
                 
                 [cell addSubview:_selectView];
             }
-        }
-            
+//        }
+        
         [lineLbl setBackgroundColor:[UIColor colorWithRed:0.89 green:0.89 blue:0.89 alpha:1]];
         cell.selectionStyle = UITableViewCellSelectionStyleNone;
         
@@ -372,9 +406,13 @@
     
     return headHight;
 }
+
 - (UIView *)tableView:(UITableView *)tableView viewForHeaderInSection:(NSInteger)section
 {
-    if (!headView) {
+//    if (!headView) {
+    for (UIView *hview in headView.subviews) {
+        [hview removeFromSuperview];
+    }
         headView = [[UIView alloc] initWithFrame:CGRectMake(0, 0, CGRectGetWidth(skuTabeView.frame), tableView.sectionHeaderHeight)];
         [headView setBackgroundColor:[UIColor whiteColor]];
         
@@ -383,7 +421,7 @@
         if (_productVO.ColorInfo.count > 0) {
             color_vo = _productVO.ColorInfo[0];
         }
-        [proimgView sd_setImageWithURL:[NSURL URLWithString:color_vo.Pic?color_vo.Pic:@""] placeholderImage:[UIImage imageNamed:@"productph"]];
+        [proimgView sd_setImageWithURL:[NSURL URLWithString:color_vo.Pic?color_vo.Pic:@""] placeholderImage:nil];
         [headView addSubview:proimgView];
         
         UILabel *titleLbl = [[UILabel alloc] initWithFrame:CGRectZero];
@@ -402,7 +440,7 @@
         [downBtn addTarget:self action:@selector(finishBtnClick:) forControlEvents:UIControlEventTouchUpInside];
         [headView addSubview:downBtn];
         
-        if (!__ourPriceLbl) {
+//        if (!__ourPriceLbl) {
             __ourPriceLbl = [[UILabel alloc] initWithFrame:CGRectZero];
             __ourPriceLbl.textColor = LMH_COLOR_SKIN;
             __ourPriceLbl.textAlignment = NSTextAlignmentCenter;
@@ -411,8 +449,8 @@
             __ourPriceLbl.font = [UIFont systemFontOfSize:18.0];
             
             [headView addSubview:__ourPriceLbl];
-        }
-        
+//        }
+    
         if (_productVO.OurPrice) {
             NSString *ourPrice;
             CGFloat afloat = [_productVO.OurPrice floatValue];
@@ -431,7 +469,7 @@
         CGSize ourSize = [__ourPriceLbl.text sizeWithFont:__ourPriceLbl.font];
         [__ourPriceLbl setFrame:CGRectMake(CGRectGetMinX(titleLbl.frame), CGRectGetMaxY(titleLbl.frame) + 5, ourSize.width, 20)];
         
-        if (!__marketPriceLbl) {
+//        if (!__marketPriceLbl) {
             __marketPriceLbl = [[UILabel alloc] initWithFrame:CGRectZero];
             __marketPriceLbl.font = [UIFont systemFontOfSize:15.0];
             __marketPriceLbl.textColor = LMH_COLOR_LIGHTGRAY;
@@ -440,8 +478,8 @@
             __marketPriceLbl.numberOfLines = 1;
             
             [headView addSubview:__marketPriceLbl];
-        }
-        
+//        }
+    
         if (_productVO.MarketPrice) {
             NSString *marketPrice;
             CGFloat bfloat = [_productVO.MarketPrice floatValue];
@@ -465,7 +503,7 @@
         UILabel *lineLbl = [[UILabel alloc] initWithFrame:CGRectMake(0,  headHight -1, CGRectGetWidth(self.frame), 1)];
         [lineLbl setBackgroundColor:LMH_COLOR_LIGHTLINE];
         [headView addSubview:lineLbl];
-    }
+//    }
     
     return headView;
 }
@@ -555,13 +593,14 @@
             ColorInfoVO *vo = colorbtn.colorData;
             
             if (btn == colorbtn) {
-                [proimgView sd_setImageWithURL:[NSURL URLWithString:vo.Pic?vo.Pic:@""] placeholderImage:[UIImage imageNamed:@"place_2"]];
+                [proimgView sd_setImageWithURL:[NSURL URLWithString:vo.Pic?vo.Pic:@""] placeholderImage:nil];
                 if ([vo.SkuNum integerValue] == 0) {
                     colorbtn.buttonState = KTPropButtonNoStock;
                 } else {
                     colorbtn.buttonState = KTPropButtonSelected;
                     _colorid = [vo.ColorID integerValue];
                 }
+                
             } else {
                 if (_sizeid >= 0) {
                     for (SkuListVO *skuVO in _productVO.PropTable) {
@@ -703,6 +742,7 @@
                 if (skuVO.ColorID && skuVO.SizeID) {
                     if ([skuVO.ColorID integerValue] == _colorid && [skuVO.SizeID integerValue] == _sizeid) {
                         _skuNum = [skuVO.SkuNum intValue];
+                        _skuID = skuVO.SkuID;
                         break;
                     }
                 }
@@ -715,6 +755,7 @@
                 if (skuVO.ColorID && skuVO.SizeID) {
                     if ([skuVO.ColorID integerValue] == _colorid && [skuVO.SizeID integerValue] == 0) {
                         _skuNum = [skuVO.SkuNum intValue];
+                        _skuID = skuVO.SkuID;
                         break;
                     }
                 }
@@ -727,6 +768,7 @@
                 if (skuVO.ColorID && skuVO.SizeID) {
                     if ([skuVO.ColorID integerValue] == 0 && [skuVO.SizeID integerValue] == _sizeid) {
                         _skuNum = [skuVO.SkuNum intValue];
+                        _skuID = skuVO.SkuID;
                         break;
                     }
                 }
@@ -739,6 +781,7 @@
                 if (skuVO.ColorID && skuVO.SizeID) {
                     if ([skuVO.ColorID integerValue] == 0 && [skuVO.SizeID integerValue] == 0) {
                         _skuNum = [skuVO.SkuNum intValue];
+                        _skuID = skuVO.SkuID;
                         break;
                     }
                 }
@@ -782,8 +825,10 @@
 -(void)finishBtnClick:(UIButton *)sender
 {
     if (sender == downBtn) {
-        [popSkuViewDelegate select_Color:-1 select_Size:-1 total_Num:-1];
-        return;
+        if ([popSkuViewDelegate respondsToSelector:@selector(select_Color:select_Size:total_Num:andSku_id:)]) {
+            [popSkuViewDelegate select_Color:-1 select_Size:-1 total_Num:-1 andSku_id:nil];
+        }
+            return;
     }else{
         if ((_colorid == -1) && (_productVO.ColorInfo.count > 0)) {
             [self textStateHUD:@"请选择商品颜色尺码"];
@@ -793,7 +838,10 @@
             [self textStateHUD:@"请选择商品颜色尺码"];
             return;
         }
-        [popSkuViewDelegate select_Color:_colorid select_Size:_sizeid total_Num:_qty];
+        if ([popSkuViewDelegate respondsToSelector:@selector(select_Color:select_Size:total_Num:andSku_id:)]) {
+            [popSkuViewDelegate select_Color:_colorid select_Size:_sizeid total_Num:_qty andSku_id:_skuID];
+        }
+        
     }
 }
 

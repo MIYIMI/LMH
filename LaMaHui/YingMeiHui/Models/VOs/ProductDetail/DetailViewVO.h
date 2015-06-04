@@ -11,6 +11,7 @@
 #import "BrandInfoVO.h"
 #import "LikeProductVO.h"
 #import "CommentsVO.h"
+#import "LMH_EventVO.h"
 
 #if ! __has_feature(objc_arc)
 #define JSONAutoRelease(param) ([param autorelease]);
@@ -20,7 +21,6 @@
 
 @interface DetailViewVO : NSObject
 
-+ (DetailViewVO *)DetailViewVOWithJSONString:(NSString *)jsonString usingEncoding:(NSStringEncoding)stringEncoding error:(NSError **)error;
 + (NSArray *)DetailViewVOWithArray:(NSArray *)array;
 + (DetailViewVO *)DetailViewVOWithDictionary:(NSDictionary *)dictionary;
 
@@ -32,17 +32,13 @@
 @property(nonatomic, retain) ProductInfoVO *productDict;
 @property(nonatomic, retain) BrandInfoVO *brandDict;
 @property(nonatomic, retain) NSArray *likeArray;
-
-
 @property(nonatomic, retain) NSNumber *comments_sroce;
 @property(nonatomic, retain) NSNumber *comments_count;
 @property(nonatomic, retain) CommentsVO  *comments;
-//@property(nonatomic, retain) NSString *user_name;
-//@property(nonatomic, retain) NSString *content;
-//@property(nonatomic, retain) NSString *create_at;
-//@property(nonatomic, retain) NSString *update_at;
-//@property(nonatomic, retain) NSArray  *spec;
-//@property(nonatomic, retain) NSString *color;
-//@property(nonatomic, retain) NSString *size;
+
+@property(nonatomic, strong) NSArray *evaluate_list;
+@property(nonatomic, strong) NSNumber *evaluate_count;
+@property(nonatomic, strong) NSNumber *fav_count;
+@property(nonatomic, strong) NSArray *fav_img;
 
 @end

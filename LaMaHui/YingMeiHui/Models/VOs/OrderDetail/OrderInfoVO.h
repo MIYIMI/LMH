@@ -37,5 +37,6 @@
 @property(nonatomic, retain) NSNumber *pay_credit;
 @property(nonatomic, retain) NSNumber *pay_status;
 @property(nonatomic, retain) NSNumber *total_money;
+@property(nonatomic, retain) NSArray *detail_info;
 
 @end

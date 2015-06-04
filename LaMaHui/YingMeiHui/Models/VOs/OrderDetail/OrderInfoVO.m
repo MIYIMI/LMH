@@ -22,6 +22,7 @@
 @synthesize pay_credit;
 @synthesize pay_status;
 @synthesize total_money;
+@synthesize detail_info;
 
 + (OrderInfoVO *)OrderInfoVOWithDictionary:(NSDictionary *)dictionary
 {
@@ -72,8 +73,8 @@
             self.create_at = [dictionary objectForKey:@"create_at"];
         }
         
-        if (nil != [dictionary objectForKey:@"part_orders"] && ![[dictionary objectForKey:@"part_orders"] isEqual:[NSNull null]] &&[[dictionary objectForKey:@"part_orders"] isKindOfClass:[NSArray class]]) {
-            self.part_orders = [OrderGoodsVO OrderGoodsVOListWithArray:[dictionary objectForKey:@"part_orders"]];
+        if (nil != [dictionary objectForKey:@"event"] && ![[dictionary objectForKey:@"event"] isEqual:[NSNull null]] &&[[dictionary objectForKey:@"event"] isKindOfClass:[NSArray class]]) {
+            self.part_orders = [OrderEventVO OrderEventVOListWithArray:[dictionary objectForKey:@"event"]];
         }
         
         if (nil != [dictionary objectForKey:@"pay_at"] && ![[dictionary objectForKey:@"pay_at"] isEqual:[NSNull null]]) {
@@ -94,6 +95,10 @@
         
         if (nil != [dictionary objectForKey:@"total_money"] && ![[dictionary objectForKey:@"total_money"] isEqual:[NSNull null]]) {
             self.total_money = [dictionary objectForKey:@"total_money"];
+        }
+      
+        if (nil != [dictionary objectForKey:@"detail_info"] && ![[dictionary objectForKey:@"detail_info"] isEqual:[NSNull null]] && [[dictionary objectForKey:@"detail_info"] isKindOfClass:[NSArray class]]) {
+            self.detail_info = [dictionary objectForKey:@"detail_info"];
         }
     }
     

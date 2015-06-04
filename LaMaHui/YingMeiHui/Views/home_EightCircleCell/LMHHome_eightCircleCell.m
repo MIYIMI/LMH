@@ -42,45 +42,41 @@
         
         CGFloat cellHeight = 0;
         if (eightCircleVO.category_list.count>0 && eightCircleVO.category_list.count<=4) {
-            cellHeight = ScreenW/4*155/180;
+            cellHeight = ScreenW/5*155/180;
         }else{
-            cellHeight = ScreenW/4*155/180*2;
+            cellHeight = ScreenW/5*155/180*2;
         }
         
         cellView = [[UIView alloc] initWithFrame:CGRectMake(0, 0, ScreenW, cellHeight)];
         [cellView setBackgroundColor:[UIColor clearColor]];
         [self.contentView addSubview:cellView];
-        
-        for (int i = 0; i < 8; i++) {
-            UIButton * Btn = [UIButton buttonWithType:UIButtonTypeCustom];
-            Btn.backgroundColor = [UIColor clearColor];
-            Btn.tag = 1000+i;
-            
-            [btnArray addObject:Btn];
-            
-            [Btn addTarget:self action:@selector(btnPressed:) forControlEvents:UIControlEventTouchUpInside];
-            [cellView addSubview:Btn];
-        }
     }else if (_eightCircleVO.category_list.count <= 0){
         cellView.frame = CGRectZero;
     }
     
-    CGFloat picHeight = ScreenW/4*155/180;
+    CGFloat picHeight = ScreenW/5*155/180;
+    
+    for (UIButton *btn in cellView.subviews) {
+        [btn removeFromSuperview];
+    }
     
     for (int i=0; i<_eightCircleVO.category_list.count; i++) {
         AdvVO *adv = _eightCircleVO.category_list[i];
         
-        UIButton * Btn = btnArray[i];
+        UIButton * Btn = [UIButton buttonWithType:UIButtonTypeCustom];
         //button设置网络图片
         [Btn sd_setBackgroundImageWithURL:[NSURL URLWithString:adv.Pic] forState:UIControlStateNormal placeholderImage:nil];
         Btn.backgroundColor = [UIColor clearColor];
         Btn.tag = 1000+i;
         
-        if (i<4) {
-            [Btn setFrame:CGRectMake(i*ScreenW/4, 0, ScreenW/4, picHeight)];
+        if (i<5) {
+            [Btn setFrame:CGRectMake(i*ScreenW/5, 0, ScreenW/5, picHeight)];
         }else{
-            [Btn setFrame:CGRectMake((i-4)*ScreenW/4, picHeight, ScreenW/4, picHeight)];
+            [Btn setFrame:CGRectMake((i-5)*ScreenW/5, picHeight, ScreenW/5, picHeight)];
         }
+        
+        [Btn addTarget:self action:@selector(btnPressed:) forControlEvents:UIControlEventTouchUpInside];
+        [cellView addSubview:Btn];
     }
 }
 

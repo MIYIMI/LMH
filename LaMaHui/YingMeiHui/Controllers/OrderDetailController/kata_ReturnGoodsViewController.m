@@ -22,6 +22,7 @@
     UIToolbar *toolBar;
     kata_TextField *trackField;
     kata_TextField *logisticsField;
+    UIButton *submitBtn;
 }
 
 @end
@@ -93,7 +94,7 @@
     [paramsDict setObject:@"get_express_list" forKey:@"method"];
     
     KTProxy *proxy = [KTProxy loadWithRequest:req completed:^(NSString *resp, NSStringEncoding encoding) {
-        
+        [self hideHUD];
         [self performSelectorOnMainThread:@selector(getTrackParseResponse:) withObject:resp waitUntilDone:YES];
         
     } failed:^(NSError *error) {
@@ -246,7 +247,7 @@
             trackField.delegate = self;
             [cell.contentView addSubview:logisticsField];
             
-            UIButton *submitBtn = [[UIButton alloc] initWithFrame:CGRectMake(CGRectGetMinX(logisticsField.frame), CGRectGetMaxY(logisticsField.frame)+20, 90, 30)];
+            submitBtn = [[UIButton alloc] initWithFrame:CGRectMake(CGRectGetMinX(logisticsField.frame), CGRectGetMaxY(logisticsField.frame)+20, 90, 30)];
             [submitBtn setBackgroundColor:ALL_COLOR];
             [submitBtn setTitleColor:[UIColor whiteColor] forState:UIControlStateNormal];
             [submitBtn setTitle:@"提交信息" forState:UIControlStateNormal];
@@ -341,17 +342,12 @@
     }
 }
 
-#pragma mark - Load ReturnOrderDetail
+#pragma mark - 提交物流信息
 - (void)submitExpress
 {
-    if (!stateHud) {
-        stateHud = [[MBProgressHUD alloc] initWithView:self.contentView];
-        stateHud.delegate = self;
-        [self.contentView addSubview:stateHud];
-    }
-    stateHud.mode = MBProgressHUDModeIndeterminate;
-    stateHud.labelFont = [UIFont systemFontOfSize:14.0f];
-    [stateHud show:YES];
+    [self loadHUD];
+    
+    [submitBtn setEnabled:NO];
     
     NSString *userid = nil;
     NSString *usertoken = nil;
@@ -389,11 +385,12 @@
     [paramsDict setObject:@"upload_express_info" forKey:@"method"];
     
     KTProxy *proxy = [KTProxy loadWithRequest:req completed:^(NSString *resp, NSStringEncoding encoding) {
-
+        [submitBtn setEnabled:YES];
+        [self hideHUD];
         [self performSelectorOnMainThread:@selector(submitExpressResponse:) withObject:resp waitUntilDone:YES];
-        
     } failed:^(NSError *error) {
         [self hideHUD];
+        [submitBtn setEnabled:YES];
         [self performSelectorOnMainThread:@selector(textStateHUD:) withObject:@"网络错误" waitUntilDone:YES];
     }];
     
@@ -410,7 +407,11 @@
         
         if ([statusStr isEqualToString:@"OK"] && [[respDict objectForKey:@"code"] integerValue] == 0) {
             [self textStateHUD:@"信息提交成功"];
-            [self performSelector:@selector(popVC) withObject:nil afterDelay:0.5];
+            
+            [[NSNotificationCenter defaultCenter] postNotificationName:@"flashOrder" object:nil];
+            [[NSNotificationCenter defaultCenter] postNotificationName:@"flashDetail" object:nil];
+            
+            [self.navigationController popViewControllerAnimated:YES];
             return;
         }
     }
@@ -437,10 +438,6 @@
     frame.origin.y = 0;
     
     self.tableView.frame = frame;
-}
-
-- (void)popVC{
-    [self.navigationController popViewControllerAnimated:YES];
 }
 
 @end

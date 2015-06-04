@@ -8,16 +8,14 @@
 
 #import <UIKit/UIKit.h>
 
-@interface DeviceModel:NSObject{
-    
-}
+@interface DeviceModel:NSObject
 
 + (id)shareModel;
-- (void)currentModel;
 @property(nonatomic,strong) NSString *phoneType;
 @property(nonatomic,strong) NSString *netType;
 @property(nonatomic,strong) NSString *deviceType;
 @property(nonatomic,strong) NSString *systemOS;
 @property(nonatomic,strong) NSString *carrierName;
+@property(nonatomic,strong) NSString *scrResolution;
 
 @end

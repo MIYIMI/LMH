@@ -79,7 +79,6 @@
 
 -(void)viewDidAppear:(BOOL)animated{
     [super viewDidAppear:animated];
-    [[(kata_AppDelegate *)[[UIApplication sharedApplication] delegate] deckController] setPanningMode:IIViewDeckNoPanning];
 }
 
 - (void)createUI
@@ -154,21 +153,22 @@
     cancelBtn.layer.masksToBounds = YES;
     cancelBtn.layer.cornerRadius = 10.0;
     [cancelBtn addTarget:self action:@selector(cancelClick) forControlEvents:UIControlEventTouchUpInside];
-    [cancelBtn setBackgroundColor:[UIColor colorWithRed:0.98 green:0.33 blue:0.43 alpha:1]];
+    [cancelBtn setBackgroundColor:LMH_COLOR_SKIN];
     [halfview addSubview:cancelBtn];
-    
-    [sheetImg sd_setImageWithURL:[NSURL URLWithString:_picurl] placeholderImage:nil options:0 completed:^(UIImage *image, NSError *error, SDImageCacheType cacheType, NSURL *imageURL) {
-        //过滤字符串前后的空格
-        NSString *alipayText = [self.alipayField.text stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceCharacterSet]];
-        //过滤中间空格
-        alipayText = [alipayText stringByReplacingOccurrencesOfString:@" " withString:@""];
-        if (image && alipayText.length) {
-            halfview.backgroundColor = [UIColor colorWithRed:0.0 green:0.0 blue:0.0 alpha:0.5];
-            halfview.hidden = NO;
-        }else{
-            [self.navigationController popViewControllerAnimated:YES];
-        }
-    }];
+    NSURL *picUrl;
+    if (![_picurl isKindOfClass:[NSNull class]] && _picurl.length > 0) {
+        picUrl = [NSURL URLWithString:_picurl];
+        [sheetImg sd_setImageWithURL:picUrl placeholderImage:nil options:0 completed:^(UIImage *image, NSError *error, SDImageCacheType cacheType, NSURL *imageURL) {
+            if (image) {
+                halfview.backgroundColor = [UIColor colorWithRed:0.0 green:0.0 blue:0.0 alpha:0.5];
+                halfview.hidden = NO;
+            }else{
+                [self.navigationController popViewControllerAnimated:YES];
+            }
+        }];
+    }else{
+        [self.navigationController popViewControllerAnimated:YES];
+    }
 }
 
 - (void)cancelClick{

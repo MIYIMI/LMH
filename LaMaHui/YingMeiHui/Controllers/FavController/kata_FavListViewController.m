@@ -64,7 +64,6 @@
 
 -(void)viewDidAppear:(BOOL)animated{
     [super viewDidAppear:animated];
-    [[(kata_AppDelegate *)[[UIApplication sharedApplication] delegate] deckController] setPanningMode:IIViewDeckNoPanning];
 }
 
 - (void)didReceiveMemoryWarning
@@ -113,12 +112,12 @@
 
 -(void)toHomeBtnPressed
 {
-    NSArray *viewControllers =[[[self.tabBarController childViewControllers] objectAtIndex:0] childViewControllers];
-    for (UIViewController *vc in viewControllers) {
-        if ([vc isKindOfClass:[KTChannelViewController class]]) {
-            [(KTChannelViewController *)vc selectedTabIndex:0];
-        }
-    }
+//    NSArray *viewControllers =[[[self.tabBarController childViewControllers] objectAtIndex:0] childViewControllers];
+//    for (UIViewController *vc in viewControllers) {
+//        if ([vc isKindOfClass:[KTChannelViewController class]]) {
+//            [(KTChannelViewController *)vc selectedTabIndex:0];
+//        }
+//    }
     self.tabBarController.selectedIndex=0;
     if (self.tabBarController.selectedIndex == 0) {
         [self.navigationController popToRootViewControllerAnimated:YES];

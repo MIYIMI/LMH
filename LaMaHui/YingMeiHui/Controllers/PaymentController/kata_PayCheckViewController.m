@@ -145,7 +145,6 @@
 
 -(void)viewDidAppear:(BOOL)animated{
     [super viewDidAppear:animated];
-    [[(kata_AppDelegate *)[[UIApplication sharedApplication] delegate] deckController] setPanningMode:IIViewDeckNoPanning];
 }
 
 -(void)viewDidDisappear:(BOOL)animated{
@@ -181,6 +180,10 @@
     if (IOS_7) {
         CGRect frame = self.view.frame;
         frame.size.height -= (64 + BOTTOMHIGHT);
+        paytableView.frame = frame;
+    }else{
+        CGRect frame = self.view.frame;
+        frame.size.height -= (44 + BOTTOMHIGHT);
         paytableView.frame = frame;
     }
     
@@ -432,16 +435,16 @@
     
     if (!_totalFeeLbl) {
         _totalFeeLbl = [[UILabel alloc] initWithFrame:CGRectZero];
-        [_totalFeeLbl setTextColor:[UIColor colorWithRed:0.98 green:0.3 blue:0.41 alpha:1]];
-        [_totalFeeLbl setFont:[UIFont systemFontOfSize:15.0]];
+        [_totalFeeLbl setTextColor:LMH_COLOR_SKIN];
+        [_totalFeeLbl setFont:LMH_FONT_15];
         [_totalFeeLbl setText:@"¥"];
         [_bottomView addSubview:_totalFeeLbl];
     }
     
     if (!_couponFeeLbl) {
         _couponFeeLbl = [[UILabel alloc] initWithFrame:CGRectZero];
-        [_couponFeeLbl setTextColor:[UIColor colorWithRed:0.42 green:0.42 blue:0.42 alpha:1]];
-        [_couponFeeLbl setFont:[UIFont systemFontOfSize:12.0]];
+        [_couponFeeLbl setTextColor:LMH_COLOR_GRAY];
+        [_couponFeeLbl setFont:LMH_FONT_12];
         [_bottomView addSubview:_couponFeeLbl];
     }
     
@@ -701,7 +704,7 @@
     for(id vo in _productData){
         if ([vo isKindOfClass:[CartProductVO class]]) {
             CartProductVO *pvo = vo;
-            [_productidArray addObject:pvo.product_id];
+            [_productidArray addObject:pvo.product_id?pvo.product_id:@-1];
         }
     }
     if (userid && usertoken) {

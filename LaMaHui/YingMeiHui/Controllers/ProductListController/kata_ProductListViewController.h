@@ -8,10 +8,9 @@
 
 #import "FTStatefulTableViewController.h"
 #import "kata_TableListTabBar.h"
-#import "KATAFocusViewController.h"
 #import "SDWebImagePrefetcher.h"
 
-@interface kata_ProductListViewController : FTStatefulTableViewController <TableListTabBarDelegate,KATAFocusViewControllerDelegate,SDWebImageManagerDelegate>
+@interface kata_ProductListViewController : FTStatefulTableViewController <TableListTabBarDelegate,SDWebImageManagerDelegate>
 
 - (id)initWithBrandID:(NSInteger)brandid
              andTitle:(NSString *)title

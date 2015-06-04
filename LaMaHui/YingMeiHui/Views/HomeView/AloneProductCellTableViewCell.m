@@ -14,6 +14,7 @@
 
 @implementation AloneProductCellTableViewCell
 @synthesize cellFrame;
+@synthesize is_newEvent;//是否是新专场
 
 - (id)initWithStyle:(UITableViewCellStyle)style reuseIdentifier:(NSString *)reuseIdentifier
 {
@@ -35,22 +36,28 @@
         imgArray       = [[NSMutableArray alloc] init];
         logoArray      = [[NSMutableArray alloc] init];
         ttArray        = [[NSMutableArray alloc] init];
+        
+        is_newEvent = NO;
     }
     
     return self;
 }
 
 -(void)layoutUI:(NSArray*)cellData andColnum:(NSInteger)colnum is_act:(BOOL)flag is_type:(BOOL)logoShow {
-    CGFloat cellHeight = 140;
+    CGFloat cellHeight;
     _cellData = cellData;
     _isFlag = flag;
     _logoShow = logoShow;
+    
+    // 2 -- 竖排   1 -- 横排
     NSInteger count = colnum;
     
-    if (count == 2) {
+    if (count == 2 && !is_newEvent) {
         cellHeight = (ScreenW-30)/2+75;
+    }else if(count == 2){
+        cellHeight = (ScreenW-30)/2+55;
     }else{
-        cellHeight = 140;
+        cellHeight = 140*((ScreenW/320)-1)+140;
     }
     
     if (!cellView) {
@@ -70,8 +77,6 @@
             [unitView addGestureRecognizer:tapGesture];
             
             UIImageView *proImgView = [[UIImageView alloc] initWithFrame:CGRectZero];
-            proImgView.clipsToBounds = YES;
-            proImgView.contentMode = UIViewContentModeScaleAspectFill;
             [proImgArray addObject:proImgView];
             [unitView addSubview:proImgView];
             
@@ -192,8 +197,8 @@
         UIImageView *pview = proImgArray[i];
         UILabel *elbl = expertLblArray[i];
         UILabel *tlbl = titleLblArray[i];
-        UILabel *slbl = sellLblArray[i];
-        UILabel *olbl = orgLblArray[i];
+        UILabel *slbl = sellLblArray[i];     //售价
+        UILabel *olbl = orgLblArray[i];      //老价格/原价
         UILabel *llbl = lineLblArray[i];
         UILabel *chlbl = checkLblArray[i];
         UILabel *tlabel = tlabelArray[i];
@@ -209,7 +214,15 @@
             ((UIView *)viewArray[i]).hidden = NO;
         }
         
-        [pview sd_setImageWithURL:[NSURL URLWithString:pvo.pic] placeholderImage:LOCAL_IMG(@"logoph.png")];
+        [UIView beginAnimations:@"ToggleViews" context:nil];
+        [UIView setAnimationDuration:1.5];
+        [UIView setAnimationCurve:UIViewAnimationCurveEaseInOut];
+        // Make the animatable changes.
+        pview.alpha = 0.0;
+        pview.alpha = 1.0;
+        [UIView commitAnimations];
+
+        [pview sd_setImageWithURL:[NSURL URLWithString:pvo.pic] placeholderImage:nil];
         if (count == 1 && ([pvo.is_activity integerValue] == 1 || [pvo.is_activity integerValue] == 0)) {
             UILabel *nlbl = sellnumLblArray[i];
             nlbl.tag = 100001;
@@ -219,7 +232,7 @@
             pview.frame = CGRectMake(10, 10, CGRectGetHeight(uview.frame)-20, CGRectGetHeight(uview.frame)-20);
             if ([pvo.stock integerValue] >0) {
                 oview.hidden = YES;
-            }else{
+            }else if(!is_newEvent){
                 oview.frame = CGRectMake((ScreenW/3-ScreenW/3/5*4)/2, (CGRectGetHeight(pview.frame)-ScreenW/3/5*4)/2, CGRectGetWidth(pview.frame)/5*4, ScreenW/3/5*4);
                 oview.hidden = NO;
             }
@@ -266,7 +279,6 @@
                 market_price = [NSString stringWithFormat:@"¥%0.0f",[pvo.market_price floatValue]];
             }
             
-            
             NSString *orgStr = market_price;
 //            NSString *orgStr = [NSString stringWithFormat:@"¥%0.2f",[pvo.market_price floatValue]];
             CGSize orgSize = [orgStr sizeWithFont:FONT(12.0) constrainedToSize:CGSizeMake((rwidth-10)/2, 20) lineBreakMode:NSLineBreakByCharWrapping];
@@ -291,14 +303,14 @@
             }
             
             iview.frame = CGRectMake(CGRectGetWidth(uview.frame)-30, CGRectGetHeight(uview.frame)-35, 25, 25);
-        }else if([pvo.is_activity integerValue] == 1 || [pvo.is_activity integerValue] == 0){
+        }else if([pvo.is_activity integerValue] <= 1){
             uview.frame = CGRectMake(10+i*((ScreenW-30)/2+10), 10, (ScreenW-30)/2, cellHeight-10);
             [uview.layer setBorderWidth:0.5];
             [uview.layer setBorderColor:[[UIColor colorWithWhite:0.840 alpha:0.300] CGColor]];
             pview.frame = CGRectMake(0, 0, CGRectGetWidth(uview.frame), CGRectGetWidth(uview.frame));
             if ([pvo.stock integerValue] > 0) {
                 oview.hidden = YES;
-            }else{
+            }else if(!is_newEvent){
                 oview.hidden = NO;
                 oview.frame = CGRectMake((CGRectGetWidth(pview.frame)- CGRectGetWidth(pview.frame)/5*3)/2, (CGRectGetHeight(pview.frame)-CGRectGetWidth(pview.frame)/5*3)/2, CGRectGetWidth(pview.frame)/5*3, CGRectGetWidth(pview.frame)/5*3);
             }
@@ -311,9 +323,6 @@
             elbl.font  = [UIFont systemFontOfSize:13];
             
             CGFloat bheight = CGRectGetMaxY(pview.frame)+5;
-            
-//            tlbl.frame = CGRectMake(2, bheight, (ScreenW-30)/2-4, 20);
-//            tview.frame = CGRectMake(CGRectGetMaxX(tlbl.frame)+3, bheight+5, 25, 10);
             
             [tlbl setNumberOfLines:1];
             tlbl.frame = CGRectMake(5, bheight, (ScreenW-30)/2-5, 15);
@@ -361,45 +370,54 @@
                 market_price = [NSString stringWithFormat:@"¥%0.0f",[pvo.market_price floatValue]];
             }
             NSString *orgStr = market_price;
-//            NSString *orgStr = [NSString stringWithFormat:@"¥%0.1f",[pvo.market_price floatValue]];
             CGSize orgSize = [orgStr sizeWithFont:FONT(12.0) constrainedToSize:CGSizeMake(CGRectGetWidth(uview.frame)/5*2, 20) lineBreakMode:NSLineBreakByCharWrapping];
             [olbl setFrame:CGRectMake(CGRectGetWidth(uview.frame) - orgSize.width - 5 , CGRectGetMinY(slbl.frame), orgSize.width, 20)];
-            [olbl setText:orgStr];
+            if (is_newEvent) {//是否是专场的
+                olbl.frame = CGRectMake(CGRectGetMaxX(slbl.frame)+5, CGRectGetMaxY(tlbl.frame)+5, orgSize.width, 15);
+            }
+            NSMutableAttributedString *old_attriStr = [[NSMutableAttributedString alloc] initWithString:market_price];
+            [old_attriStr addAttributes:@{NSStrikethroughStyleAttributeName: [NSNumber numberWithInt:NSUnderlineStyleSingle]} range:NSMakeRange(0, old_attriStr.length)];
+            olbl.attributedText = old_attriStr;
             
-            llbl.frame = CGRectMake(5, CGRectGetHeight(olbl.frame)/2, CGRectGetWidth(olbl.frame) - 5, 1);
-//            tview.frame = CGRectMake(CGRectGetWidth(uview.frame) - 25, CGRectGetMaxY(pview.frame)+5, 16, 16);
             tlabel.frame = CGRectMake(CGRectGetWidth(uview.frame) - 50, CGRectGetMaxY(slbl.frame)+5, 45, 15);
             [tlabel setTextAlignment:NSTextAlignmentRight];
+            
+            if (is_newEvent) {
+                tlabel.frame = CGRectMake(CGRectGetWidth(uview.frame) - 50, CGRectGetMinY(slbl.frame), 45, 15);
+                tlabel.text = pvo.age;
+            }
         }else if([pvo.is_activity integerValue] == 2){
             if (count == 1) {
                 uview.frame = CGRectMake(0, 5, ScreenW, cellHeight - 5);
-                pview.frame = CGRectMake(10, 10, ScreenW-20, CGRectGetHeight(uview.frame)-20);
-                [pview sd_setImageWithURL:[NSURL URLWithString:pvo.activity_image_w] placeholderImage:LOCAL_IMG(@"logoph.png")];
+                pview.frame = CGRectMake(0, 0, ScreenW, CGRectGetHeight(uview.frame));
+                [pview sd_setImageWithURL:[NSURL URLWithString:pvo.activity_image_w] placeholderImage:nil];
             }else{
                 uview.frame = CGRectMake(10+i*((ScreenW-30)/2+10), 10, (ScreenW-30)/2, cellHeight-10);
                 [uview.layer setBorderWidth:0.5];
                 [uview.layer setBorderColor:[[UIColor colorWithWhite:0.840 alpha:0.300] CGColor]];
                 pview.frame = CGRectMake(0, 0, CGRectGetWidth(uview.frame), cellHeight-10);
-                [pview sd_setImageWithURL:[NSURL URLWithString:pvo.activity_image_h] placeholderImage:LOCAL_IMG(@"logoph.png")];
+                [pview sd_setImageWithURL:[NSURL URLWithString:pvo.activity_image_h] placeholderImage:nil];
             }
-            elbl.frame = CGRectZero;
-            tlbl.frame = CGRectZero;
-            slbl.frame = CGRectZero;
-            olbl.frame = CGRectZero;
-            llbl.frame = CGRectZero;
-            chlbl.frame = CGRectZero;
-            tlabel.frame = CGRectZero;
-            fitlbl.frame = CGRectZero;
-            sabl.frame = CGRectZero;
-            oview.frame = CGRectZero;
-            lview.frame = CGRectZero;
-            ttIV.frame = CGRectZero;
+            elbl.frame = CGRectNull;
+            tlbl.frame = CGRectNull;
+            slbl.frame = CGRectNull;
+            olbl.frame = CGRectNull;
+            llbl.frame = CGRectNull;
+            chlbl.frame = CGRectNull;
+            tlabel.frame = CGRectNull;
+            fitlbl.frame = CGRectNull;
+            sabl.frame = CGRectNull;
+            oview.frame = CGRectNull;
+            lview.frame = CGRectNull;
+            ttIV.frame = CGRectNull;
+            
             for (UIView *rview in uview.subviews) {
                 if (rview.tag == 100001 || rview.tag == 100002) {
-                    rview.frame = CGRectZero;
+                    rview.frame = CGRectNull;
                 }
             }
         }
+        
         
         if ([pvo.is_exclusive boolValue]) {
             NSString *exclusive_price;
@@ -422,11 +440,15 @@
         if (_logoShow == YES) {
             // 添加logo
             lview.frame = CGRectMake(pview.frame.size.width - CGRectGetWidth(pview.frame)/3, 0, CGRectGetWidth(pview.frame)/3, CGRectGetWidth(pview.frame)/6);
-            [lview sd_setImageWithURL:[NSURL URLWithString:pvo.logo]];
+            if (is_newEvent) {
+                [lview sd_setImageWithURL:[NSURL URLWithString:pvo.tag_url]];
+                lview.frame = CGRectMake(0, 0, CGRectGetWidth(pview.frame)/3, CGRectGetWidth(pview.frame)/6);
+            }else{
+                [lview sd_setImageWithURL:[NSURL URLWithString:pvo.logo]];
+            }
         }
 
         // 添加标签
-
         if ([pvo.source_platform isEqualToString:@"lamahui"]) {
             ttIV.image = nil;
             for (UIView *uview in pview.subviews) {

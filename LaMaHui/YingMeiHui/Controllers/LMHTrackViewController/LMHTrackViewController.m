@@ -80,14 +80,10 @@
     [self.tableView setTableHeaderView:headerView];
     
 }
-#pragma mark -- 网络请求
 
+#pragma mark -- 网络请求
 - (KTBaseRequest *)request
 {
-    
-//    self.orderIDStr = @"14116597743082";
-//    self.productIDStr =@"2150";
-    
     KTBaseRequest *req = [[LMHTrackInfoRequest alloc] initWithOrderID:self.orderIDStr andProductID:self.productIDStr];
     
     return req;

@@ -148,6 +148,7 @@ static DeviceModel *devModel = nil;
     if ([platform isEqualToString:@"i386"])      self.phoneType =  @"iPhone Simulator";
     if ([platform isEqualToString:@"x86_64"])    self.phoneType =  @"iPhone Simulator";
     
+    //获取连接网络
     NSArray *subviews = [[[[UIApplication sharedApplication] valueForKey:@"statusBar"] valueForKey:@"foregroundView"]subviews];
     NSNumber *dataNetworkItemView = nil;
     
@@ -183,6 +184,15 @@ static DeviceModel *devModel = nil;
         default:
             self.netType = @"NONE";
             break;
+    }
+    
+    //获取屏幕分辨率
+    self.scrResolution = @"640*1136";
+    CGRect rect_screen = [[UIScreen mainScreen]bounds];
+    CGFloat scale_screen = [UIScreen mainScreen].scale;
+    NSString *screen_size = [NSString stringWithFormat:@"%.0f*%.0f",rect_screen.size.width*scale_screen,rect_screen.size.height*scale_screen];
+    if (screen_size) {
+        self.scrResolution = screen_size;
     }
 }
 @end

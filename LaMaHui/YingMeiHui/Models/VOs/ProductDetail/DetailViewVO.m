@@ -8,6 +8,7 @@
 
 #import "DetailViewVO.h"
 #import "CommentsVO.h"
+#import "HomeVO.h"
 
 @implementation DetailViewVO
 @synthesize Code;
@@ -16,20 +17,10 @@
 @synthesize brandDict;
 @synthesize likeArray;
 @synthesize comments;
-
-+ (DetailViewVO *)DetailViewVOWithJSONString:(NSString *)jsonString usingEncoding:(NSStringEncoding)stringEncoding error:(NSError **)error
-{
-    NSData *jsonData = [jsonString dataUsingEncoding:stringEncoding];
-    NSDictionary *jsonDictionary = [NSJSONSerialization JSONObjectWithData:jsonData
-                                                                   options:0
-                                                                     error:error];
-    
-    if (nil != error && nil != jsonDictionary) {
-        return [DetailViewVO DetailViewVOWithDictionary:jsonDictionary];
-    }
-    
-    return nil;
-}
+@synthesize evaluate_count;
+@synthesize evaluate_list;
+@synthesize fav_count;
+@synthesize fav_img;
 
 + (NSArray *)DetailViewVOWithArray:(NSArray *)array
 {
@@ -73,11 +64,27 @@
         }
         
         if (nil != [dictionary objectForKey:@"like_goods"] && ![[dictionary objectForKey:@"like_goods"] isEqual:[NSNull null]]) {
-            self.likeArray = [LikeProductVO LikeProductVOWithArray:[dictionary objectForKey:@"like_goods"]];
+            self.likeArray = [HomeProductVO HomeProductVOListWithArray:[dictionary objectForKey:@"like_goods"]];
         }
         
         if (nil != [dictionary objectForKey:@"comments"] && ![[dictionary objectForKey:@"comments"] isEqual:[NSNull null]]) {
             self.comments = [CommentsVO CommentsVOWithDictionary:[dictionary objectForKey:@"comments"]];
+        }
+        
+        if (dictionary[@"evaluate_data"][@"evaluate_list"] && [dictionary[@"evaluate_data"][@"evaluate_list"] isKindOfClass:[NSArray class]]) {
+            self.evaluate_list = [LMH_EvaluatedVO LMH_EvaluatedVOListWithArray:dictionary[@"evaluate_data"][@"evaluate_list"]];
+        }
+        
+        if (dictionary[@"evaluate_data"][@"evaluate_list"] && ![dictionary[@"evaluate_data"][@"evaluate_count"] isEqual:[NSNull null]]) {
+            self.evaluate_count = dictionary[@"evaluate_data"][@"evaluate_count"];
+        }
+        
+        if (dictionary[@"fav_data"][@"fav_img"] && [dictionary[@"fav_data"][@"fav_img"] isKindOfClass:[NSArray class]]) {
+            self.fav_img = dictionary[@"fav_data"][@"fav_img"];
+        }
+        
+        if (dictionary[@"fav_data"][@"fav_count"] && ![dictionary[@"fav_data"][@"fav_count"] isEqual:[NSNull null]]) {
+            self.fav_count = dictionary[@"fav_data"][@"fav_count"];
         }
     }
     

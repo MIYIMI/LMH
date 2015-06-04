@@ -82,11 +82,6 @@
         [_params setObject:[OpenUDID value] forKey:@"device_id"];
     }
     
-    CGRect rect_screen = [[UIScreen mainScreen]bounds];
-    CGFloat scale_screen = [UIScreen mainScreen].scale;
-    NSString *screen_size = [NSString stringWithFormat:@"%.0f*%.0f",rect_screen.size.width*scale_screen,rect_screen.size.height*scale_screen];
-    [_params setObject:screen_size forKey:@"screen_size"];
-    
     [_params setObject:CHANNEL forKey:@"ditch_number"];
     
     NSUserDefaults *userDef = [NSUserDefaults standardUserDefaults];
@@ -94,27 +89,19 @@
     
     if (value) {
         [_params setObject:value forKey:@"user_uuid"];
-    }
-    else
-    {
+    }else{
         [_params setObject:@"0" forKey:@"user_uuid"];
     }
     
-//    if ([KATACheckUtils isEnableWIFI]) {
-//        [_params setObject:@"WIFI" forKey:@"net"];
-//    } else {
-//        if([[[NSUserDefaults standardUserDefaults] objectForKey:@"showHDpic"] isEqualToString:@"YES"]) {
-//            [_params setObject:@"WIFI" forKey:@"net"];
-//        } else {
-//            [_params setObject:@"GPRS" forKey:@"net"];
-//        }
-//    }
-    [[DeviceModel shareModel] currentModel];
     [_params setObject:[[DeviceModel shareModel] netType] forKey:@"net"];
     [_params setObject:[[DeviceModel shareModel] deviceType] forKey:@"mobile_brand"];
     [_params setObject:[[DeviceModel shareModel] phoneType] forKey:@"mobile_model"];
     [_params setObject:[[DeviceModel shareModel] carrierName] forKey:@"mobile_operator"];
     [_params setObject:[[DeviceModel shareModel] systemOS] forKey:@"system_version"];
+    [_params setObject:[[DeviceModel shareModel] scrResolution] forKey:@"screen_size"];
+    
+    NSUserDefaults *def = [NSUserDefaults standardUserDefaults];
+    [_params setObject:[def objectForKey:@"cv"]?[def objectForKey:@"cv"]:@1 forKey:@"cv"];
     
     if (nil != [_params objectForKey:@"params"] && ![[_params objectForKey:@"params"] isEqual:[NSNull null]]) {
         id paramsData = [_params objectForKey:@"params"];
@@ -124,7 +111,6 @@
                                                                encoding:NSUTF8StringEncoding];
             
             [_params setObject:paramsJsonString forKey:@"params"];
-            
         } else {
             [_params removeObjectForKey:@"params"];
         }

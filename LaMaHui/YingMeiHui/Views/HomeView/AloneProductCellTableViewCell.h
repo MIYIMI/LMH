@@ -43,5 +43,6 @@
 @property(nonatomic,strong)id<AloneProductCellTableViewCellDelgate> delegate;
 @property(nonatomic)CGRect cellFrame;
 @property(nonatomic)NSInteger row;
+@property(nonatomic)BOOL is_newEvent;
 
 @end

@@ -52,8 +52,8 @@
 #endif
 
 #define OpenUDIDLog(fmt, ...)
-//#define OpenUDIDLog(fmt, ...) NSLog((@"%s [Line %zi] " fmt), __PRETTY_FUNCTION__, __LINE__, ##__VA_ARGS__);
-//#define OpenUDIDLog(fmt, ...) NSLog((@"[Line %zi] " fmt), __LINE__, ##__VA_ARGS__);
+//#define OpenUDIDLog(fmt, ...) NSLog((@"%s [Line %d] " fmt), __PRETTY_FUNCTION__, __LINE__, ##__VA_ARGS__);
+//#define OpenUDIDLog(fmt, ...) NSLog((@"[Line %d] " fmt), __LINE__, ##__VA_ARGS__);
 
 static NSString * kOpenUDIDSessionCache = nil;
 static NSString * const kOpenUDIDKey = @"OpenUDID";
@@ -63,7 +63,7 @@ static NSString * const kOpenUDIDTSKey = @"OpenUDID_createdTS";
 static NSString * const kOpenUDIDOOTSKey = @"OpenUDID_optOutTS";
 static NSString * const kOpenUDIDDomain = @"org.OpenUDID";
 static NSString * const kOpenUDIDSlotPBPrefix = @"org.OpenUDID.slot.";
-static NSInteger const kOpenUDIDRedundancySlots = 100;
+static int const kOpenUDIDRedundancySlots = 100;
 
 @interface OpenUDID (Private)
 + (void) _setDict:(id)dict forPasteboard:(id)pboard;
@@ -125,19 +125,19 @@ static NSInteger const kOpenUDIDRedundancySlots = 100;
     // We then hash it with md5 to get 32 bytes, and then add 4 extra random bytes
     // Collision is possible of course, but unlikely and suitable for most industry needs (e.g.. aggregate tracking)
     //
+    
     if (_openUDID==nil) {
         unsigned char result[16];
         const char *cStr = [[[NSProcessInfo processInfo] globallyUniqueString] UTF8String];
         CC_MD5( cStr, (CC_LONG)strlen(cStr), result );
         _openUDID = [NSString stringWithFormat:
-                @"%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%08x",
-                result[0], result[1], result[2], result[3], 
-                result[4], result[5], result[6], result[7],
-                result[8], result[9], result[10], result[11],
-                result[12], result[13], result[14], result[15],
-                arc4random() % 294967295];
+                     @"%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%08x",
+                     result[0], result[1], result[2], result[3],
+                     result[4], result[5], result[6], result[7],
+                     result[8], result[9], result[10], result[11],
+                     result[12], result[13], result[14], result[15],
+                     arc4random() % 294967295];
     }
-    
     // Call to other developers in the Open Source community:
     //
     // feel free to suggest better or alternative "UDID" generation code above.
@@ -206,8 +206,8 @@ static NSInteger const kOpenUDIDRedundancySlots = 100;
     //
     NSString* availableSlotPBid = nil;
     NSMutableDictionary* frequencyDict = [NSMutableDictionary dictionaryWithCapacity:kOpenUDIDRedundancySlots];
-    for (NSInteger n=0; n<kOpenUDIDRedundancySlots; n++) {
-        NSString* slotPBid = [NSString stringWithFormat:@"%@%zi",kOpenUDIDSlotPBPrefix,n];
+    for (int n=0; n<kOpenUDIDRedundancySlots; n++) {
+        NSString* slotPBid = [NSString stringWithFormat:@"%@%d",kOpenUDIDSlotPBPrefix,n];
 #if TARGET_OS_IPHONE || TARGET_IPHONE_SIMULATOR
         UIPasteboard* slotPB = [UIPasteboard pasteboardWithName:slotPBid create:NO];
 #else
@@ -226,8 +226,8 @@ static NSInteger const kOpenUDIDRedundancySlots = 100;
                 if (availableSlotPBid==nil) availableSlotPBid = slotPBid;
             } else {
                 // increment the frequency of this oudid key
-                NSInteger count = [[frequencyDict valueForKey:oudid] intValue];
-                [frequencyDict setObject:[NSNumber numberWithInteger:++count] forKey:oudid];
+                int count = [[frequencyDict valueForKey:oudid] intValue];
+                [frequencyDict setObject:[NSNumber numberWithInt:++count] forKey:oudid];
             }
             // if we have a match with the app unique id,
             // then let's look if the external UIPasteboard representation marks this app as OptedOut

@@ -15,7 +15,6 @@
 #import "ZYQAssetPickerController.h"
 #import "KTProxy.h"
 #import "LMHSaveEvaluateInfoRequest.h"
-#import "UpYun.h"
 
 @interface EvaluationTableViewController ()<UITextViewDelegate>
 {
@@ -30,14 +29,13 @@
     NSMutableArray *textArr;
     OrderEventVO *_eventVO;
     NSMutableArray *OKArr;
-    UpYun *upYun;
 }
 
 @end
 
 @implementation EvaluationTableViewController
 
-- (id)initWithOrderEventVO:(OrderEventVO *) eventVO{
+- (id)initWithOrderGoodsVO:(OrderGoodsVO *)goodsVO{
     self = [super initWithStyle:UITableViewStylePlain];
     if (self) {
         self.ifAddPullToRefreshControl = NO;
@@ -48,13 +46,13 @@
         imageUrlArr = [[NSMutableArray alloc] init];
         OKArr = [[NSMutableArray alloc] init];
         
-        _eventVO = eventVO;
-        for (int i = 0; i < eventVO.goods.count; i++) {
+        
+        _eventVO = [[OrderEventVO alloc] init];
+        _eventVO.goods = [NSArray arrayWithObject:goodsVO];
+        for (int i = 0; i < _eventVO.goods.count; i++) {
             NSMutableArray *MUarry = [[NSMutableArray alloc] init];
             [imageViewArr addObject:MUarry];
         }
-        
-        upYun = [[UpYun alloc] init];
     }
     
     return self;
@@ -123,7 +121,7 @@
 {
     // 声明重用标识
     static NSString *cellIdentifier_1 = @"cellIdentifier_1";
-    NSString *cellIdentifier_2 = [NSString stringWithFormat:@"cellIdentifierd_%d", indexPath.section];
+    NSString *cellIdentifier_2 = [NSString stringWithFormat:@"cellIdentifierd_%zi", indexPath.section];
 //    NSLog(@"%@",cellIdentifier_2);
     if (indexPath.section == _eventVO.goods.count) {
         UITableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:cellIdentifier_1];
@@ -193,7 +191,7 @@
                 UIImageView *addImageView = (UIImageView *)[cell viewWithTag:(indexPath.section + 1) * 1000 + j];
                 addImageView.image = imageViewArr[indexPath.section][j];
             }
-            for (int j = [imageViewArr[indexPath.section] count]; j < 5; j++) {
+            for (NSInteger j = [imageViewArr[indexPath.section] count]; j < 5; j++) {
                 UIImageView *addImageView = (UIImageView *)[cell viewWithTag:(indexPath.section + 1) * 1000 + j];
                 addImageView.image = [UIImage imageNamed:@"upLoadImage"];
             }
@@ -373,7 +371,7 @@
 -(NSString * )getSaveKey:(NSInteger)imgno andPartid:(NSInteger)partid{
     // 上传图片，以文件流的格式
     NSString *userid = [[[kata_UserManager sharedUserManager] userInfo] objectForKey:@"user_id"];
-    NSString *fileName = [NSString stringWithFormat:@"%@%zi_%d.jpg", userid,imgno,partid];
+    NSString *fileName = [NSString stringWithFormat:@"%@%zi_%zi.jpg", userid,imgno,partid];
     
     return fileName;
 }
@@ -381,6 +379,8 @@
 #pragma mark - 网络请求
 - (void)commiteInfoOperation
 {
+    [okButton setEnabled:NO];
+    
     KTBaseRequest *req = [[KTBaseRequest alloc] init];
     
     NSString *userid = nil;
@@ -399,10 +399,12 @@
     }
     
     KTProxy *proxy = [KTProxy loadWithRequest:req completed:^(NSString *resp, NSStringEncoding encoding) {
-        
+        [self hideHUD];
+        [okButton setEnabled:YES];
         [self performSelectorOnMainThread:@selector(commiteInfoParseResponse:) withObject:resp waitUntilDone:YES];
-        
     } failed:^(NSError *error) {
+        [self hideHUD];
+        [okButton setEnabled:YES];
         [self textStateHUD:@"获取失败"];
     }];
     
@@ -420,7 +422,10 @@
             
             if ([statusStr isEqualToString:@"OK"] && [statusStr isEqualToString:@"code"] == 0) {
                 [self textStateHUD:@"评价成功"];
-                [self performSelector:@selector(reloadList) withObject:nil afterDelay:1.0];
+                
+                [[NSNotificationCenter defaultCenter] postNotificationName:@"flashDetail" object:nil];
+                [[NSNotificationCenter defaultCenter] postNotificationName:@"flashOrder" object:nil];
+                
                 [self.navigationController popViewControllerAnimated:YES];
                 
             } else {
@@ -434,10 +439,6 @@
         [self textStateHUD:@"评价失败"];
     }
     
-}
-
-- (void)reloadList{
-    [[NSNotificationCenter defaultCenter] postNotificationName:@"flashOrder" object:nil userInfo:nil];
 }
 
 -(void)viewWillDisappear:(BOOL)animated

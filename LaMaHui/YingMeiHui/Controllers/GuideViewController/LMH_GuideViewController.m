@@ -256,7 +256,7 @@
     NSInteger inder = scrollView.contentOffset.x / CGRectGetWidth(scrollView.frame);
     if (inder == (count - 1)) {
     // 设置自动跳转主页
-    timer =[NSTimer scheduledTimerWithTimeInterval:3.0f target:self selector:@selector(delayMethod) userInfo:nil repeats:NO];
+    timer =[NSTimer scheduledTimerWithTimeInterval:1.5f target:self selector:@selector(delayMethod) userInfo:nil repeats:NO];
     } else {
         // 重置timer
         [timer invalidate];

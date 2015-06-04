@@ -150,11 +150,8 @@
 }
 
 - (void)seqBtnClick{
-    NSString *telstr = [[NSUserDefaults standardUserDefaults] objectForKey:@"service_phone"];
-    NSURLRequest *telRequest = [NSURLRequest requestWithURL:[NSURL URLWithString:[NSString stringWithFormat:@"tel://%@",telstr]]];
-    UIWebView *telWeb = [[UIWebView alloc] init];
-    [telWeb loadRequest:telRequest];
-    [self.contentView addSubview:telWeb];
+    NSString *telStr = [NSString stringWithFormat:@"tel://%@", [[NSUserDefaults standardUserDefaults] objectForKey:@"service_phone"]];
+    [[UIApplication sharedApplication] openURL:[NSURL URLWithString:telStr]];
 }
 
 //倒计时

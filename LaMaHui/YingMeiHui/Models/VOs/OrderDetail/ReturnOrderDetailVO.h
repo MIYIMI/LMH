@@ -52,7 +52,7 @@
 + (WriteReasonVO *)WriteReasonVOWithDictionary:(NSDictionary *)dictionary;
 - (id)initWithDictionary:(NSDictionary *)dictionary;
 
-@property(nonatomic, retain) NSNumber *order_id;
+@property(nonatomic, retain) NSString *order_id;
 @property(nonatomic, retain) NSNumber *order_part_id;
 @property(nonatomic, retain) NSString *max_money;
 @property(nonatomic, retain) NSNumber *quantity;

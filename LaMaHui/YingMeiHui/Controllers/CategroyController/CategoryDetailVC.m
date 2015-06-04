@@ -17,7 +17,6 @@
 #import "kata_AppDelegate.h"
 #import "kata_ActivityViewController.h"
 #import "kata_WebViewController.h"
-#import "kata_DescribeViewController.h"
 #import "kata_SignInViewController.h"
 #import "LimitedSeckillViewController.h"
 #import "Loading.h"
@@ -26,12 +25,13 @@
 #define TABLES_COLOR        [UIColor colorWithRed:0.95 green:0.95 blue:0.95 alpha:1]
 #define SEGMENTHEIGHT       30
 
-@interface CategoryDetailVC ()<XLCycleScrollViewDatasource,XLCycleScrollViewDelegate,UISearchBarDelegate,TableListTabBarDelegate,LoginDelegate>
+@interface CategoryDetailVC ()<XLCycleScrollViewDatasource,XLCycleScrollViewDelegate,UISearchBarDelegate,TableListTabBarDelegate,LoginDelegate,Category_selectViewDelegate>
 {
     NSString *flag;
     NSInteger select;
     NSMutableArray *_productDictArr;
     HomeVO *listVO;
+    AdvVO *_advo;
     NSInteger pagesize;
     
     UIView *_headerView;
@@ -46,12 +46,21 @@
     UIButton *_searchBtn;
     UIButton *_clearBtn;
     Loading *loading_two;
+    
+    UIButton *_selectBtn;
+    UILabel *_line;
+    Category_selectView *selectView;
+    
+    UIView *fiterView;
+    NSDictionary *_fiterDict;
 }
 @end
 
 @implementation CategoryDetailVC
 @synthesize pid;
 @synthesize cateid;
+@synthesize is_search;
+@synthesize is_root;
 
 -(id)initWithAdvData:(AdvVO *)advo andFlag:(NSString *)_flag{
     if (self=[super init]) {
@@ -68,15 +77,16 @@
             self.listData = [NSMutableArray array];
         }
     }
-    self.title = _flag;
-    if ([_flag isEqualToString:@"get_nine_list"]) {
-        self.title = @"9块9包邮";
-    }else if ([_flag isEqualToString:@"get_brand_tuan_list"]) {
+    
+    _advo = advo;
+    self.title = flag;
+    if ([_advo.Type integerValue] == 9) {
         self.title = @"品牌团";
-    }else if ([_flag isEqualToString:@"get_special_list"]) {
+    }else if ([_advo.Type integerValue] == 10) {
+        self.title = @"9块9包邮";
+    }else if([_advo.Type integerValue] == 11 || [_flag isEqualToString:@"get_special_list"]){
         self.title = @"汇特卖";
         self.isLamahui = YES;
-        
     }
     return self;
 }
@@ -84,14 +94,20 @@
 - (void)viewWillAppear:(BOOL)animated
 {
     [super viewWillAppear:animated];
-    [self.tableView reloadData];
     if(self.listData.count > 0){
-        self.is_Type = [[[NSUserDefaults standardUserDefaults] objectForKey:@"myInteger"] intValue];
-        [self changeCell];
+        NSInteger type = [[[NSUserDefaults standardUserDefaults] objectForKey:@"myInteger"] integerValue];
+        self.is_Type = type;
+        if (type != select) {
+            [self changeCell];
+        }
     }
 }
+
 -(void)viewWillDisappear:(BOOL)animated{
     [super viewWillDisappear:animated];
+    
+    _searchBtn.selected = NO;
+    selectView.hidden = YES;
 }
 
 - (void)viewDidLoad
@@ -124,11 +140,6 @@
 
 -(void)viewDidAppear:(BOOL)animated{
     [super viewDidAppear:animated];
-    if (_is_root && self.tabBarController.selectedIndex == 0) {
-        [[(kata_AppDelegate *)[[UIApplication sharedApplication] delegate] deckController] setPanningMode:IIViewDeckFullViewPanning];
-    }else{
-        [[(kata_AppDelegate *)[[UIApplication sharedApplication] delegate] deckController] setPanningMode:IIViewDeckNoPanning];
-    }
 }
 
 - (void)didReceiveMemoryWarning
@@ -188,6 +199,10 @@
     }
     
     NSMutableDictionary *dict = [NSMutableDictionary dictionary];
+    
+    if (_fiterDict) {
+        [dict setDictionary:_fiterDict];
+    }
     if (pid)
         [dict setObject:pid forKey:@"pid"];
     if (cateid)
@@ -197,10 +212,15 @@
     if (userid) {
         [dict setObject:[NSNumber numberWithInteger:[userid integerValue]] forKey:@"userid"];
     }
+    
+    if([_advo.Type integerValue] == 11 || [flag isEqualToString:@"get_special_list"]){
+        [dict setObject:@1 forKey:@"is_temai"];
+    }
+    
     [dict setValue:[NSNumber numberWithInteger:_sorttype] forKey:@"sort"];
-    if ([flag isEqualToString:@"get_nine_list"]||[flag isEqualToString:@"get_brand_tuan_list"]||[flag isEqualToString:@"get_special_list"]) {
+    if ([flag isEqualToString:@"get_nine_list"]||[flag isEqualToString:@"get_brand_tuan_list"]) {
         [paramsDict setObject:flag forKey:@"method"];
-    } else if(![pid integerValue] && ![cateid integerValue] && ![flag isEqualToString:@"attr"]){
+    } else if(![pid integerValue] && ![cateid integerValue] && !flag){
         [paramsDict setObject:@"search_goods_by_keyword" forKey:@"method"];
         [dict setValue:flag forKey:@"keyword"];
     }else{
@@ -216,7 +236,6 @@
 
 - (NSArray *)parseResponse:(NSString *)resp
 {
-    [self stopLoading];
     NSArray *objArr = nil;
     if (resp) {
         NSData *respData = [resp dataUsingEncoding:NSUTF8StringEncoding allowLossyConversion:YES];
@@ -230,6 +249,16 @@
          
                 if ([dataObj isKindOfClass:[NSDictionary class]]) {
                     listVO = [HomeVO HomeVOWithDictionary:dataObj];
+                    
+                    //筛选弹出框
+                    if (!selectView) {
+                        //筛选弹出框
+                        selectView = [[Category_selectView alloc] initWithFrame:CGRectMake(0, SEGMENTHEIGHT+64+0.5, ScreenW, ScreenH - SEGMENTHEIGHT - 64 - 0.5)];
+                        selectView.fitArray = listVO.class_list;
+                        selectView.delegate = self;
+                        selectView.hidden = YES;
+                        [[UIApplication sharedApplication].keyWindow addSubview:selectView];
+                    }
                     
                     NSUserDefaults *userDefaultes = [NSUserDefaults standardUserDefaults];
                     select = [userDefaultes integerForKey:@"myInteger"];
@@ -342,8 +371,7 @@
         AdvVO *adv = listVO.banner[index];
         NSString *imageName = adv.Pic;
         UIImageView *imageView = [[UIImageView alloc] initWithFrame:CGRectMake(0, 0, CGRectGetWidth(rect), ScreenW*290/720)];
-        imageView.contentMode = UIViewContentModeScaleAspectFit;
-        [imageView sd_setImageWithURL:[NSURL URLWithString:imageName] placeholderImage:[UIImage imageNamed:@"place_4"]];
+        [imageView sd_setImageWithURL:[NSURL URLWithString:imageName] placeholderImage:nil];
         return imageView;
     }
     return nil;
@@ -391,7 +419,6 @@
     [self.listData removeAllObjects];
     self.listData = array;
     [self.tableView reloadData];
-
 }
 
 #pragma mark -
@@ -424,7 +451,7 @@
     }else{
         cell = [tableView dequeueReusableCellWithIdentifier:SECTION_TENT];
         if (!cell) {
-            cell = [[AloneProductCellTableViewCell alloc] initWithStyle:UITableViewCellStyleDefault reuseIdentifier:SECTION_TENT];
+            cell = [[UITableViewCell alloc] initWithStyle:UITableViewCellStyleDefault reuseIdentifier:SECTION_TENT];
         }
     }
     cell.selectionStyle = UITableViewCellSelectionStyleNone;
@@ -435,7 +462,7 @@
 - (CGFloat)tableView:(UITableView *)tableView heightForRowAtIndexPath:(NSIndexPath *)indexPath{
     if (indexPath.row < self.listData.count) {
         if (select == 1) {
-            return 140;
+            return 140*((ScreenW/320)-1)+140;
         }
         return (ScreenW-30)/2+75;
     }else{
@@ -444,47 +471,82 @@
 }
 
 - (CGFloat)tableView:(UITableView *)tableView heightForHeaderInSection:(NSInteger)section{
-    if (self.listData.count > 0 && (self.is_root || !self.is_home) && ![flag isEqual:@"get_brand_tuan_list"] && ![flag isEqual:@"get_nine_list"]) {
-        return SEGMENTHEIGHT;
-    }
-    return 0;
+    return SEGMENTHEIGHT;
 }
-
 
 - (UIView *)tableView:(UITableView *)tableView viewForHeaderInSection:(NSInteger)section{
     if (!_sortFilterView) {
         _sortFilterView = [[UIView alloc] initWithFrame:CGRectZero];
         
-        kata_TableListTabBar *tableTabBar = [[kata_TableListTabBar alloc] initWithFrame:CGRectMake(0, 0, ScreenW, SEGMENTHEIGHT)];
+        kata_TableListTabBar *tableTabBar = [[kata_TableListTabBar alloc] initWithFrame:CGRectMake(0, 0, ScreenW-ScreenW/4, SEGMENTHEIGHT)];
+        if (self.is_search) {
+            tableTabBar.frame = CGRectMake(0, 0, ScreenW, SEGMENTHEIGHT);
+        }
         tableTabBar.tableListTabBarDelegate = self;
         tableTabBar.backgroundColor = [UIColor clearColor];
         _tabbarItems = [[NSMutableArray alloc] initWithCapacity:3];
         [_tabbarItems addObject:[NSMutableDictionary dictionaryWithObjectsAndKeys:@"最新", @"title", @"", @"icon",@"", @"selecticon", @"103", @"tag", @"8", @"sort", @"8", @"sort_op", @"sort_op", @"status", nil]];
         [_tabbarItems addObject:[NSMutableDictionary dictionaryWithObjectsAndKeys:@"销量", @"title", @"", @"icon",@"", @"selecticon", @"101", @"tag", @"6", @"sort", @"6", @"sort_op", @"sort", @"status", nil]];
-        [_tabbarItems addObject:[NSMutableDictionary dictionaryWithObjectsAndKeys:@"价格", @"title", @"updown", @"icon",@"downup", @"selecticon", @"102", @"tag", @"1", @"sort", @"2", @"sort_op", @"sort", @"status", nil]];
+        [_tabbarItems addObject:[NSMutableDictionary dictionaryWithObjectsAndKeys:@"价格", @"title", @"updown", @"icon", @"downup", @"selecticon", @"102", @"tag", @"1", @"sort", @"2", @"sort_op", @"sort", @"status", nil]];
         tableTabBar.items = _tabbarItems;
         tableTabBar.selectedTabItem = [_tabbarItems objectAtIndex:0];
         _tableTabB = tableTabBar;
         
-        UILabel *lineLbl1 = [[UILabel alloc] initWithFrame:CGRectMake(ScreenW/_tabbarItems.count, 5, 0.3, SEGMENTHEIGHT-10)];
+        UILabel *lineLbl1 = [[UILabel alloc] initWithFrame:CGRectMake((is_search?ScreenW:ScreenW-ScreenW/4)/_tabbarItems.count, 5, 0.3, SEGMENTHEIGHT-10)];
         [lineLbl1 setBackgroundColor:LMH_COLOR_LIGHTLINE];
         [_sortFilterView addSubview:lineLbl1];
-        UILabel *lineLbl2 = [[UILabel alloc] initWithFrame:CGRectMake(ScreenW/_tabbarItems.count*2, 5, 0.3, SEGMENTHEIGHT-10)];
+        UILabel *lineLbl2 = [[UILabel alloc] initWithFrame:CGRectMake((is_search?ScreenW:ScreenW-ScreenW/4)/_tabbarItems.count*2, 5, 0.3, SEGMENTHEIGHT-10)];
         [lineLbl2 setBackgroundColor:LMH_COLOR_LIGHTLINE];
         [_sortFilterView addSubview:lineLbl2];
+        UILabel *lineLbl3 = [[UILabel alloc] initWithFrame:CGRectMake((is_search?ScreenW:ScreenW-ScreenW/4)/_tabbarItems.count*3, 5, 0.3, SEGMENTHEIGHT-10)];
+        [lineLbl3 setBackgroundColor:LMH_COLOR_LIGHTLINE];
+        [_sortFilterView addSubview:lineLbl3];
         [_sortFilterView addSubview:tableTabBar];
     }
     
     [_sortFilterView setFrame:CGRectMake(0, 0, ScreenW, SEGMENTHEIGHT)];
     [_sortFilterView setBackgroundColor:[UIColor whiteColor]];
     
-//    dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0.5 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
-//        [self stopLoading];
-//    });
-
+    //筛选
+    if (!_selectBtn && !self.is_search) {
+        _selectBtn = [UIButton buttonWithType:UIButtonTypeCustom];
+        _selectBtn.frame = CGRectMake(ScreenW/4*3, 0, ScreenW/4, SEGMENTHEIGHT);
+        _selectBtn.backgroundColor = [UIColor clearColor];
+        [_selectBtn setTitle:@"筛选" forState:UIControlStateNormal];
+        [_selectBtn setTitleColor:LMH_COLOR_BLACK forState:UIControlStateNormal];
+        [_selectBtn setTitleColor:LMH_COLOR_SKIN forState:UIControlStateSelected];
+        _selectBtn.titleLabel.font = FONT(12);
+        _selectBtn.titleLabel.textAlignment = NSTextAlignmentCenter;
+        [_selectBtn.titleLabel setFont :[UIFont fontWithName : @"Helvetica-Bold"  size : 12 ]]; ///加粗
+        [_selectBtn setImage:[UIImage imageNamed:@"fiter_normal"] forState:UIControlStateNormal];
+        [_selectBtn setImage:[UIImage imageNamed:@"fiter_select"] forState:UIControlStateSelected];
+        [_selectBtn setImageEdgeInsets:UIEdgeInsetsMake(0, -10, 0, 0)];
+        [_selectBtn setTitleEdgeInsets:UIEdgeInsetsMake(0, 8, 0, 0)];
+        _selectBtn.selected = NO;
+        [_selectBtn addTarget:self action:@selector(selectBtnClick) forControlEvents:UIControlEventTouchUpInside];
+        [_sortFilterView addSubview:_selectBtn];
+    }
+    
+    if (!_line) {
+        _line = [[UILabel alloc] initWithFrame:CGRectMake(0, SEGMENTHEIGHT-0/5, ScreenW, 0.5)];
+        _line.backgroundColor = LMH_COLOR_LIGHTLINE;
+        [_sortFilterView addSubview:_line];
+    }
+    
     return _sortFilterView;
-}
 
+}
+- (void)selectBtnClick
+{
+    selectView.hidden = !selectView.hidden;
+    _selectBtn.selected = YES;
+    [UIView beginAnimations:@"change" context:nil];
+    [UIView setAnimationDuration:0.3];
+    [UIView setAnimationCurve:UIViewAnimationCurveEaseInOut];
+    selectView.alpha = 0.0;
+    selectView.alpha = 1.0;
+    [UIView commitAnimations];
+}
 - (void)seachBtnClick{
     flag = _searchBar.text;
 
@@ -508,40 +570,41 @@
         _sorttype = [[item objectForKey:[item objectForKey:@"status"]] intValue];
         
         if ([table_proxy isLoading]) {
-            [table_proxy.oper cancel];
-            self.statefulState = FTStatefulTableViewControllerStateIdle;
+//            [table_proxy.oper cancel];
+//            self.statefulState = FTStatefulTableViewControllerStateIdle;
+            return;
         }
-        
-        [self startLoading];
         self.current = 1;
-        [self loadNoState];
+        [self loadNewer];
     }
+    selectView.hidden = YES;
 }
 
 #pragma mark - AloneProductCellTableViewCell Delegate ---(cell 的点击事件)
 - (void)tapAtItem:(HomeProductVO *)vo
 {
-    if(![vo.source_platform isEqualToString:@"lamahui"]){
-//        kata_DescribeViewController *webVC = [[kata_DescribeViewController alloc] initWithProductID:[vo.product_id integerValue] andPlatform:vo.source_platform];
-//        webVC.navigationController = self.navigationController;
-//        webVC.hidesBottomBarWhenPushed = YES;
-//        [self.navigationController pushViewController:webVC animated:YES];
-//        
-//        return;
-//    }else if([vo.is_check intValue] == 0 && ![vo.source_platform isEqualToString:@"lamahui"]){
-//        
-        kata_WebViewController *webVC = [[kata_WebViewController alloc] initWithUrl:vo.click_url title:nil andType:vo.source_platform];
-        webVC.navigationController = self.navigationController;
-        webVC.hidesBottomBarWhenPushed = YES;
-        [self.navigationController pushViewController:webVC animated:YES];
+    if ([vo.is_activity integerValue] == 2) {
+        AdvVO *adv = [[AdvVO alloc] init];
+        adv.Type = vo.activity_type;
+        adv.Key = vo.activity_key;
+        adv.platform = vo.source_platform;
+        adv.Title = vo.product_name;
+        [self nextView:adv];
     }else{
-        // 商品详情
-        kata_ProductDetailViewController *vc = [[kata_ProductDetailViewController alloc] initWithProductID:[vo.product_id integerValue] andType:nil andSeckillID:-1];
-        vc.navigationController = self.navigationController;
-        vc.hidesBottomBarWhenPushed = YES;
-        [self.navigationController pushViewController:vc animated:YES];
+        if(![vo.source_platform isEqualToString:@"lamahui"]){
+            kata_WebViewController *webVC = [[kata_WebViewController alloc] initWithUrl:vo.click_url title:nil andType:vo.source_platform];
+            webVC.navigationController = self.navigationController;
+            webVC.hidesBottomBarWhenPushed = YES;
+            [self.navigationController pushViewController:webVC animated:YES];
+            
+        }else{
+            // 商品详情
+            kata_ProductDetailViewController *vc = [[kata_ProductDetailViewController alloc] initWithProductID:[vo.product_id integerValue] andType:nil andSeckillID:-1];
+            vc.navigationController = self.navigationController;
+            vc.hidesBottomBarWhenPushed = YES;
+            [self.navigationController pushViewController:vc animated:YES];
+        }
     }
-
 }
 
 -(void)nextView:(AdvVO *)nextVO
@@ -571,15 +634,6 @@
 //                break;
             case 1://商品详情页
             {
-                if(![nextVO.platform isEqualToString:@"lamahui"]){
-                    kata_DescribeViewController *webVC = [[kata_DescribeViewController alloc] initWithProductID:[nextVO.Key integerValue] andPlatform:nextVO.platform];
-                    webVC.navigationController = self.navigationController;
-                    webVC.hidesBottomBarWhenPushed = YES;
-                    [self.navigationController pushViewController:webVC animated:YES];
-                    
-                    return;
-                }
-                
                 if (nextVO.Key && [nextVO.Key intValue] != -1) {
                     kata_ProductDetailViewController *detailVC = [[kata_ProductDetailViewController alloc] initWithProductID:[nextVO.Key intValue] andType:nil andSeckillID:-1];
                     detailVC.hidesBottomBarWhenPushed = YES;
@@ -605,14 +659,6 @@
             {
                 //web页
                 if (nextVO.Key && ![nextVO.Key isEqualToString:@""]) {
-                    if(![nextVO.platform isEqualToString:@"lamahui"]){
-                        kata_DescribeViewController *webVC = [[kata_DescribeViewController alloc] initWithProductID:[nextVO.Key integerValue] andPlatform:nextVO.platform];
-                        webVC.navigationController = self.navigationController;
-                        webVC.hidesBottomBarWhenPushed = YES;
-                        [self.navigationController pushViewController:webVC animated:YES];
-                        
-                        return;
-                    }
                     NSString *webUrl = [nextVO.Key stringByAppendingString:webStr];
                     kata_WebViewController *webVC = [[kata_WebViewController alloc] initWithUrl:webUrl title:nil andType:nextVO.platform];
                     webVC.navigationController = self.navigationController;
@@ -643,14 +689,6 @@
             {
                 //web页可操作app页面
                 if (nextVO.Key && ![nextVO.Key isEqualToString:@""]) {
-                    if(![nextVO.platform isEqualToString:@"lamahui"]){
-                        kata_DescribeViewController *webVC = [[kata_DescribeViewController alloc] initWithProductID:[nextVO.Key integerValue] andPlatform:nextVO.platform];
-                        webVC.navigationController = self.navigationController;
-                        webVC.hidesBottomBarWhenPushed = YES;
-                        [self.navigationController pushViewController:webVC animated:YES];
-                        
-                        return;
-                    }
                     NSString *webUrl = [nextVO.Key stringByAppendingString:webStr];
                     kata_WebViewController *webVC = [[kata_WebViewController alloc] initWithUrl:webUrl title:nil andType:nextVO.platform];
                     webVC.navigationController = self.navigationController;
@@ -769,7 +807,7 @@
             }
             [tagview addSubview:lbl];
             
-            tagview.center = v.center;
+            tagview.center = self.view.center;
             tagview.tag = 1001;
             [v addSubview:tagview];
         }
@@ -804,21 +842,17 @@
     
 }
 
-- (void)startLoading
-{
-    if (!loading_two) {
-        loading_two = [[Loading alloc] initWithFrame:CGRectMake((ScreenW-180)/2, (CGRectGetHeight(self.view.frame)-100)/2, 180, 100) andName:[NSString stringWithFormat:@"loading.gif"]];
-        loading.center = self.view.center;
-        [loading.layer setCornerRadius:10.0];
-        [self.view addSubview:loading_two];
+- (void)fiter:(NSDictionary *)fiter{
+    selectView.hidden = YES;
+    _selectBtn.selected = NO;
+    
+    if ([table_proxy isLoading]) {
+        [table_proxy.oper cancel];
+        self.statefulState = FTStatefulTableViewControllerStateIdle;
     }
-    [loading_two start];
+    _fiterDict = fiter;
+    self.current = 1;
+    [self loadNewer];
 }
 
-- (void)stopLoading
-{
-    if (loading_two) {
-        [loading_two stop];
-    }
-}
 @end

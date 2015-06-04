@@ -9,15 +9,14 @@
 #import "kata_ActivityViewController.h"
 #import "HomeVO.h"
 #import "KTChanelRequest.h"
-#import "kata_IndexAdvFocusViewController.h"
 #import "AloneProductCellTableViewCell.h"
 #import "UMSocial.h"
 #import "UMSocialWechatHandler.h"
 #import "kata_ProductDetailViewController.h"
 #import "kata_UserManager.h"
 #import "kata_ProductListViewController.h"
-#import "kata_DescribeViewController.h"
 #import "kata_WebViewController.h"
+#import "XLCycleScrollView.h"
 
 #define PAGERSIZE           20
 #define SEGMENTHEIGHT       40
@@ -25,10 +24,10 @@
 #define SEGMENT_BGCOLOR     [UIColor whiteColor]
 #define ADVFOCUSHEIGHT      140
 
-@interface kata_ActivityViewController ()<KATAFocusViewControllerDelegate,AloneProductCellTableViewCellDelgate>
+@interface kata_ActivityViewController ()<AloneProductCellTableViewCellDelgate,XLCycleScrollViewDatasource,XLCycleScrollViewDelegate>
 {
     UIView *_headerView;
-    kata_IndexAdvFocusViewController *_bannerFV;
+    XLCycleScrollView *xlScorllView;
     
     //活动id
     NSInteger _chanelid;
@@ -83,9 +82,9 @@
     
     //返回按钮
     UIButton * backBarButton = [[UIButton alloc] initWithFrame:CGRectMake(0, 0, 20, 27)];
-    [backBarButton setImage:[UIImage imageNamed:@"icon_goback_red"]
+    [backBarButton setImage:[UIImage imageNamed:@"icon_goback_gray"]
                    forState:UIControlStateNormal];
-    [backBarButton setImage:[UIImage imageNamed:@"icon_goback_red"]
+    [backBarButton setImage:[UIImage imageNamed:@"icon_goback_gray"]
                    forState:UIControlStateHighlighted];
     
     [backBarButton addTarget:self
@@ -101,7 +100,6 @@
 
 - (void)viewDidAppear:(BOOL)animated{
     [super viewDidAppear:animated];
-    [[(kata_AppDelegate *)[[UIApplication sharedApplication] delegate] deckController] setPanningMode:IIViewDeckNoPanning];
 }
 
 -(void)viewWillDisappear:(BOOL)animated{
@@ -130,25 +128,49 @@
 
 - (void)layoutAdverView
 {
-    if (_bannerFV) {
-        [_bannerFV.view removeFromSuperview];
-        _bannerFV = nil;
+    if (xlScorllView) {
+        [xlScorllView removeFromSuperview];
+        [xlScorllView.animationTimer invalidate];
+        xlScorllView.animationTimer = nil;
+        xlScorllView = nil;
     }
     
-    if (!_bannerFV) {
-        kata_IndexAdvFocusViewController *fvc = [[kata_IndexAdvFocusViewController alloc] initWithData:listVO.banner];
-        fvc.focusViewControllerDelegate = self;
-        _bannerFV = fvc;
+    if (!xlScorllView) {
+        xlScorllView = [[XLCycleScrollView alloc] initWithFrame:CGRectMake(0, 0, ScreenW, ScreenW*290/720) animationDuration:0];
     }
-    [_headerView addSubview:_bannerFV.view];
+    [_headerView setFrame:xlScorllView.frame];
+    xlScorllView.xldelegate = self;
+    xlScorllView.xldatasource = self;
     
-    [UIView beginAnimations:nil context:NULL];
-    [UIView setAnimationDuration:0.3];
-    CGRect rect = _headerView.bounds;
-    _bannerFV.view.alpha = 1;
-    [_headerView setFrame:CGRectMake(CGRectGetMinX(rect), CGRectGetMinY(rect), CGRectGetWidth(rect), CGRectGetHeight(rect) + ADVFOCUSHEIGHT)];
+    [_headerView addSubview:xlScorllView];
     [self.tableView setTableHeaderView:_headerView];
-    [UIView commitAnimations];
+}
+
+- (NSInteger)numberOfPages
+{
+    return listVO.banner.count;
+}
+
+- (UIView *)pageAtIndex:(NSInteger)index
+{
+    CGRect rect = _headerView.bounds;
+    if (index < listVO.banner.count) {
+        AdvVO *adv = listVO.banner[index];
+        NSString *imageName = adv.Pic;
+        UIImageView *imageView = [[UIImageView alloc] initWithFrame:CGRectMake(0, 0, CGRectGetWidth(rect), ScreenW*290/720)];
+        imageView.backgroundColor = [UIColor whiteColor];
+        [imageView sd_setImageWithURL:[NSURL URLWithString:imageName] placeholderImage:nil];
+        return imageView;
+    }
+    return nil;
+}
+
+- (void)didClickPage:(XLCycleScrollView *)csView atIndex:(NSInteger)index
+{
+    //    if(index < _advArr.count){
+    //        AdvVO *adv = _advArr[index];
+    //        [self nextView:adv];
+    //    }
 }
 
 - (KTBaseRequest *)request

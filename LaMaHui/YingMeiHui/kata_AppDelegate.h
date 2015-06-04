@@ -8,9 +8,6 @@
 
 #import <UIKit/UIKit.h>
 #import "LMH_GuideViewController.h"
-#import "KTChannelViewController.h"
-#import "KTMCenterTabVC.h"
-#import "IIViewDeckController.h"
 #import "LMH_Config.h"
 #import "kata_CategoryViewController.h"
 
@@ -22,7 +19,5 @@
 
 @property (strong, nonatomic) UIWindow *window;
 @property (nonatomic,strong) kata_CategoryViewController * rootVC;
-@property (nonatomic, strong) IIViewDeckController* deckController;
-//@property (nonatomic, strong) ECSlidingViewController *slidingViewController;
 
 @end

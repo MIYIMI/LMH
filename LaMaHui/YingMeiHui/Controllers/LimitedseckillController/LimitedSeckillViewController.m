@@ -13,7 +13,6 @@
 #import "kata_ProductDetailViewController.h"
 #import "kata_ProductListViewController.h"
 #import "kata_WebViewController.h"
-#import "BOKUBannerImageButton.h"
 #import "kata_FavListViewController.h"
 #import "kata_UserManager.h"
 #import "kata_CartManager.h"
@@ -23,19 +22,17 @@
 #import "LMHLimitedSeckillRequest.h"
 #import "LimitedSeckillCell.h"
 #import "kata_ProductDetailViewController.h"
-#import "kata_DescribeViewController.h"
 #import "LMHClickRemindRequest.h"
 #import "KTProxy.h"
+#import "XLCycleScrollView.h"
 
 #define PAGERSIZE           20
 #define TABLE_COLOR         [UIColor colorWithRed:0.91 green:0.91 blue:0.91 alpha:1]
-#define ADVFOCUSHEIGHT      140
+#define ADVFOCUSHEIGHT      ScreenW*236/720
 #define MENUHEIGHT          50
 
-@interface LimitedSeckillViewController ()
+@interface LimitedSeckillViewController ()<XLCycleScrollViewDatasource,XLCycleScrollViewDelegate>
 {
-    kata_IndexAdvFocusViewController *_bannerFV;
-    UIView *_bannerView;
     UIImageView *_menuView;
     UIView *_headerView;
     
@@ -61,7 +58,7 @@
     UILabel *nullCountLabel;
     UIView *timeView;
     UIView *_errorView;
-    
+    XLCycleScrollView *xlScorllView;
     
     BOOL _isAdvLoaded;
     BOOL _isDataLoad;
@@ -130,14 +127,15 @@
     self.view.backgroundColor = [UIColor whiteColor];
     self.tableView.backgroundColor = [UIColor colorWithRed:0.94 green:0.94 blue:0.94 alpha:1];
     
-    //自定义 title
-    UILabel *titleLabel = [[UILabel alloc]initWithFrame:CGRectMake(0, 0, 120, 46)];
-    titleLabel.backgroundColor = [UIColor clearColor];
-    titleLabel.text = @"掌上秒杀";
-    titleLabel.textAlignment = NSTextAlignmentCenter;
-    titleLabel.textColor = [UIColor colorWithRed:0.96 green:0.3 blue:0.4 alpha:1];
-    titleLabel.font = FONT(18);
-    self.navigationItem.titleView = titleLabel;
+//    //自定义 title
+//    UILabel *titleLabel = [[UILabel alloc]initWithFrame:CGRectMake(0, 0, 120, 46)];
+//    titleLabel.backgroundColor = [UIColor clearColor];
+//    titleLabel.text = @"掌上秒杀";
+//    titleLabel.textAlignment = NSTextAlignmentCenter;
+//    titleLabel.textColor = [UIColor colorWithRed:0.96 green:0.3 blue:0.4 alpha:1];
+//    titleLabel.font = FONT(18);
+//    self.navigationItem.titleView = titleLabel;
+    self.title = @"掌上秒杀";
     
     self.dataArrayOne    = [NSMutableArray arrayWithCapacity:0];
     self.dataArrayTwo    = [NSMutableArray arrayWithCapacity:0];
@@ -146,22 +144,19 @@
     [super viewDidLoad];
     [self createUI];
     [self loadNewer];
+    [self loadADDataOperation];
     
-    //返回按钮
-    UIButton * backBarButton = [[UIButton alloc] initWithFrame:CGRectMake(0, 0, 20, 27)];
-    [backBarButton setImage:[UIImage imageNamed:@"icon_goback_red"]
-                   forState:UIControlStateNormal];
-    [backBarButton setImage:[UIImage imageNamed:@"icon_goback_red"]
-                   forState:UIControlStateHighlighted];
-    
-    [backBarButton addTarget:self
-                      action:@selector(popToViewController)
-            forControlEvents:UIControlEventTouchUpInside];
-    
-    UIBarButtonItem * backBarButtonItem = [[UIBarButtonItem alloc] initWithCustomView:backBarButton];
-    backBarButtonItem.style = UIBarButtonItemStylePlain;
-    
-    [self.navigationController addLeftBarButtonItem:backBarButtonItem animation:NO];
+//    //返回按钮
+//    UIButton * backBarButton = [[UIButton alloc] initWithFrame:CGRectMake(0, 0, 20, 27)];
+//    [backBarButton setImage:[UIImage imageNamed:@"icon_goback_gray"] forState:UIControlStateNormal];
+//    [backBarButton setImage:[UIImage imageNamed:@"icon_goback_gray"] forState:UIControlStateHighlighted];
+//    
+//    [backBarButton addTarget:self action:@selector(popToViewController) forControlEvents:UIControlEventTouchUpInside];
+//    
+//    UIBarButtonItem * backBarButtonItem = [[UIBarButtonItem alloc] initWithCustomView:backBarButton];
+//    backBarButtonItem.style = UIBarButtonItemStylePlain;
+//    
+//    [self.navigationController addLeftBarButtonItem:backBarButtonItem animation:NO];
 }
 - (void)popToViewController
 {
@@ -171,14 +166,7 @@
 -(void)viewWillAppear:(BOOL)animated
 {
     [super viewWillAppear:animated];
-    if (!_isAdvLoaded) {
-        [self loadADDataOperation];
-    }
     
-    //更换导航条
-    [self.navigationController.navigationBar setBackgroundImage:[UIImage imageNamed:@"nav_bg_lightGray"] forBarMetrics:UIBarMetricsDefault];
-    [[UIApplication sharedApplication] setStatusBarStyle:UIStatusBarStyleDefault];
-    self.hidesBottomBarWhenPushed = YES;
 }
 
 - (void)viewDidAppear:(BOOL)animated{
@@ -190,8 +178,6 @@
         
         backTimer = [NSTimer scheduledTimerWithTimeInterval:1.0 target:self selector:@selector(compareCurrentTime) userInfo:nil repeats:YES];
     }
-    
-    [[(kata_AppDelegate *)[[UIApplication sharedApplication] delegate] deckController] setPanningMode:IIViewDeckNoPanning];
 }
 - (void)buyBtnClick:(LimitedSeckillVO *)model
 {
@@ -222,8 +208,7 @@
 
 -(void)viewWillDisappear:(BOOL)animated{
     [super viewWillDisappear:animated];
-    [self.navigationController.navigationBar setBackgroundImage:[UIImage imageNamed:@"nav_bg_red"] forBarMetrics:UIBarMetricsDefault];
-    [[UIApplication sharedApplication] setStatusBarStyle:UIStatusBarStyleLightContent];
+    
 }
 
 - (void)didReceiveMemoryWarning
@@ -268,28 +253,19 @@
     if (!_headerView) {
         _headerView = [[UIView alloc] initWithFrame:CGRectZero];
         _headerView.backgroundColor = [UIColor colorWithRed:0.94 green:0.94 blue:0.94 alpha:1];
-//        _headerView.backgroundColor = [UIColor blueColor];
         [_headerView setFrame:CGRectMake(0, 0, CGRectGetWidth(self.view.frame), ADVFOCUSHEIGHT + MENUHEIGHT +outOfTimeHight )];
-    }
-    
-    //广告活动页视图
-    if (!_bannerView) {
-        _bannerView = [[UIView alloc] initWithFrame:CGRectZero];
-        [_bannerView setFrame:CGRectMake(0, 1, CGRectGetWidth(self.view.frame), ADVFOCUSHEIGHT)];
     }
     
     //功能列表视图
     if (!_menuView) {
-
-        _menuView = [[UIImageView alloc] initWithFrame:CGRectMake(0, ADVFOCUSHEIGHT - 5 , ScreenW , MENUHEIGHT)];
+        _menuView = [[UIImageView alloc] initWithFrame:CGRectNull];
         _menuView.backgroundColor = [UIColor clearColor];
 //        _menuView.image = [UIImage imageNamed:@"wave"];
         _menuView.userInteractionEnabled = YES;
         
         _scrollView = [[UIScrollView alloc]initWithFrame:CGRectMake(0, 0, ScreenW, 50)];
         _scrollView.contentSize = CGSizeMake(ScreenW/4*5, 50);
-//        _scrollView.backgroundColor = [UIColor greenColor];
-        _scrollView.backgroundColor = [UIColor colorWithPatternImage:[UIImage imageNamed:@"BigWhite_wave"]];
+        _scrollView.layer.contents = (id) [UIImage imageNamed:@"BigWhite_wave"].CGImage;
         _scrollView.bounces = YES;
         _scrollView.scrollEnabled = YES;
         _scrollView.showsHorizontalScrollIndicator = NO;
@@ -425,7 +401,7 @@
     startTimeLabel.textColor = [UIColor grayColor];
     
     if (!timeView) {
-        timeView = [[UIView alloc] initWithFrame:CGRectMake(100, ADVFOCUSHEIGHT + MENUHEIGHT - 5, ScreenW-110, outOfTimeHight)];
+        timeView = [[UIView alloc] initWithFrame:CGRectNull];
 //        timeView.backgroundColor = [UIColor orangeColor];
         [_headerView addSubview:timeView];
         
@@ -467,7 +443,6 @@
     }
     
 //    [_headerView addSubview:startTimeLabel];
-    [_headerView addSubview:_bannerView];
     [_headerView addSubview:_menuView];
     
     [self.tableView setTableHeaderView:_headerView];
@@ -557,6 +532,7 @@
                 if ([dataObj isKindOfClass:[NSDictionary class]]) {
                     
                     [dataArray removeAllObjects];
+                    [self.listData removeAllObjects];
                     [_timeMutableArr removeAllObjects];
                 
                     //获取 三个时间段内数据
@@ -596,6 +572,7 @@
                             [dataArray addObject:tmpArray];
                         }
                     }
+                    
                     _isDataLoad = YES;
                     [self performSelectorOnMainThread:@selector(setStartTimeAndEndTime) withObject:nil waitUntilDone:YES];
                     return objArr;
@@ -650,11 +627,12 @@
         NSString *statusStr = [respDict objectForKey:@"status"];
         
         if ([statusStr isEqualToString:@"OK"]) {
-            //改变按钮状态
+        
+            UIApplication* app = [UIApplication sharedApplication];
+            NSArray *locArray = [app scheduledLocalNotifications];
             
+            //改变按钮状态
             if ([_modell.is_seckill_remind integerValue] == 0  /*没提醒时*/) {
-
-                // UI
                 if (!remindView) {
                     remindView = [[UIView alloc]initWithFrame:CGRectMake(50, ScreenH/2-100, ScreenW - 100, 120)];
                     remindView.backgroundColor = RGBA(0, 0, 0, 0.6);
@@ -700,18 +678,21 @@
                     NSDate * pushDate = [NSDate dateWithTimeIntervalSinceNow:[remindTime integerValue]];
                     if (notification != nil) {
                         notification.fireDate = pushDate;
+                        notification.repeatInterval = 0;
                         notification.timeZone = [NSTimeZone defaultTimeZone];
                         notification.soundName = UILocalNotificationDefaultSoundName;
                         notification.alertBody = @"hi 辣妈~还有5分钟秒杀就要开始啦!";
                         notification.applicationIconBadgeNumber = 1;
                         
-                        NSUserDefaults *def = [NSUserDefaults standardUserDefaults];
-                        NSNumber* key = [def objectForKey:[_modell.begin_at stringValue]];
-                        NSNumber* numcount = [NSNumber numberWithLongLong:[key longLongValue]+1];
-                        [def setObject:numcount forKey:[_modell.begin_at stringValue]];
-                        [def synchronize];
-                        
-                        if ([key integerValue] <= 0) {
+                        BOOL is_set = NO;
+                        for (UILocalNotification* notif in locArray) {
+                            NSDictionary* dic = notif.userInfo;
+                            if ([dic[@"time"] longValue] == [_modell.begin_at longValue]) {
+                                is_set = YES;
+                                break;
+                            }
+                        }
+                        if (!is_set) {
                             NSDictionary *info = [[NSDictionary alloc] initWithObjectsAndKeys:_modell.begin_at, @"time", nil];
                             notification.userInfo = info;
                             [[UIApplication sharedApplication] scheduleLocalNotification:notification];
@@ -720,20 +701,12 @@
                 });
             }else{ //取消提醒
                 [self textStateHUD:@"开抢提醒已关闭，您可能会抢不到哦~"];
-                UIApplication* app=[UIApplication sharedApplication];
                 
-                NSUserDefaults *def = [NSUserDefaults standardUserDefaults];
-                NSNumber* keys = [def objectForKey:[_modell.begin_at stringValue]];
-                NSNumber* numcount = [NSNumber numberWithLongLong:[keys longLongValue]-1];
-                [def setObject:numcount forKey:[_modell.begin_at stringValue]];
-                [def synchronize];
-                
-                NSArray *locArray = [app scheduledLocalNotifications];
-                for (int i = 0; i < locArray.count; i++) {
-                    UILocalNotification* notif  = locArray[i];
+                for (UILocalNotification* notif in locArray) {
                     NSDictionary* dic = notif.userInfo;
-                    if ([[dic objectForKey:@"time"] longLongValue] == [_modell.begin_at longLongValue] && [numcount integerValue] <= 0) {
+                    if ([dic[@"time"] longValue] == [_modell.begin_at longValue]) {
                         [app cancelLocalNotification:notif];
+                        break;
                     }
                 }
             }
@@ -751,6 +724,7 @@
             [self textStateHUD:[respDict objectForKey:@"msg"]];
         }
     }
+    
     return objArr;
 }
 
@@ -810,46 +784,46 @@
 }
 
 #pragma mark 广告加载
-- (void)layoutAdverView:(NSNumber *)Flag
+- (void)layoutAdverView
 {
     //如果广告页为空或获取失败，显示默认图
-    if (![Flag boolValue]) {
-        UIImageView *imgView = [[UIImageView alloc] initWithFrame:CGRectMake(0, 0, CGRectGetWidth(self.view.frame), ADVFOCUSHEIGHT)];
-        [imgView setImage:[UIImage imageNamed:@"place_2"]];
-            [_bannerView addSubview:imgView];
+    if (!xlScorllView) {
+        xlScorllView = [[XLCycleScrollView alloc] initWithFrame:CGRectMake(0, 0, ScreenW, ADVFOCUSHEIGHT) animationDuration:0];
+         [_headerView addSubview:xlScorllView];
     }
-    else
-    {
-        if (_bannerFV) {
-            [_bannerFV.view removeFromSuperview];
-            _bannerFV = nil;
-        }
-        
-        if (!_bannerFV) {
-            kata_IndexAdvFocusViewController *fvc = [[kata_IndexAdvFocusViewController alloc] initWithData:_advArr];
-            fvc.focusViewControllerDelegate = self;
-            _bannerFV = fvc;
-            
-            if (!_isAdvLoaded) {
-                _bannerFV.view.alpha = 0;
-            }
-        }
-        
-        [_bannerView addSubview:_bannerFV.view];
-        
-        if (!_isAdvLoaded) {
-            [UIView beginAnimations:nil context:NULL];
-            [UIView setAnimationDuration:0.3];
-            
-            _bannerFV.view.alpha = 1;
-            [UIView commitAnimations];
-            _isAdvLoaded = YES;
-        }
-    }
+    _menuView.frame = CGRectMake(0, CGRectGetMaxY(xlScorllView.frame)+5, ScreenW , MENUHEIGHT);
+    timeView.frame = CGRectMake(100, CGRectGetMaxY(_menuView.frame), ScreenW-110, outOfTimeHight);
+    [_headerView setFrame:CGRectMake(0, 0, ScreenW, CGRectGetMaxY(timeView.frame))];
+    xlScorllView.xldelegate = self;
+    xlScorllView.xldatasource = self;
+    [self.tableView setTableHeaderView:_headerView];
 }
 
+- (NSInteger)numberOfPages
+{
+    return _advArr.count;
+}
 
+- (UIView *)pageAtIndex:(NSInteger)index
+{
+    if (index < _advArr.count) {
+        AdvVO *adv = _advArr[index];
+        NSString *imageName = adv.Pic;
+        UIImageView *imageView = [[UIImageView alloc] initWithFrame:CGRectMake(0, 0, ScreenW, ADVFOCUSHEIGHT)];
+        imageView.backgroundColor = [UIColor whiteColor];
+        [imageView sd_setImageWithURL:[NSURL URLWithString:imageName] placeholderImage:nil];
+        return imageView;
+    }
+    return nil;
+}
 
+- (void)didClickPage:(XLCycleScrollView *)csView atIndex:(NSInteger)index
+{
+//    if(index < _advArr.count){
+//        AdvVO *adv = _advArr[index];
+//        [self nextView:adv];
+//    }
+}
 
 #pragma mark - Load AD Data
 - (void)loadADDataOperation
@@ -861,7 +835,7 @@
         [self performSelectorOnMainThread:@selector(loadADDataParseResponse:) withObject:resp waitUntilDone:YES];
         
     } failed:^(NSError *error) {
-        [self performSelectorOnMainThread:@selector(layoutAdverView:) withObject:[NSNumber numberWithBool:NO] waitUntilDone:YES];
+        
     }];
     
     [proxy start];
@@ -869,7 +843,6 @@
 
 - (void)loadADDataParseResponse:(NSString *)resp
 {
-    BOOL Flag = NO;
     if (resp) {
         NSData *respData = [resp dataUsingEncoding:NSUTF8StringEncoding allowLossyConversion:YES];
         NSDictionary *respDict = [NSJSONSerialization JSONObjectWithData:respData options:NSJSONReadingMutableLeaves error:nil];
@@ -885,26 +858,12 @@
                     
                     if ([listVO.Code intValue] == 0) {
                         _advArr = listVO.AdvList;
-                        
-                        if (_advArr && _advArr.count > 0) {
-                            Flag = YES;
-                        }
-                        else
-                            Flag = NO;
                     }
-                    else
-                        Flag = NO;
                 }
-                else
-                    Flag = NO;
             }
-            else
-                Flag = NO;
         }
-        else
-            Flag = NO;
     }
-    [self performSelectorOnMainThread:@selector(layoutAdverView:) withObject:[NSNumber numberWithBool:Flag] waitUntilDone:YES];
+    [self performSelectorOnMainThread:@selector(layoutAdverView) withObject:nil waitUntilDone:YES];
 }
 
 #pragma mark -- 商品展示列表的TableView 代理（重写）
@@ -914,7 +873,7 @@
     for (NSInteger i = 0; i < dataArray.count; i++) {
         UIButton *btn = btnArray[i];
         if (btn.selected) {
-            return [dataArray[i] count];
+            return self.listData.count;
         }
     }
     
@@ -927,14 +886,7 @@
     }
     return 1;
 }
-//- (CGFloat)tableView:(UITableView *)tableView heightForHeaderInSection:(NSInteger)section
-//{
-//    if (section == 0) {
-//        return 40;
-//    }
-//    else
-//        return 0;
-//}
+
 - (CGFloat)tableView:(UITableView *)tableView heightForRowAtIndexPath:(NSIndexPath *)indexPath
 {
     return 140;
@@ -997,88 +949,6 @@
         vc.navigationController = self.navigationController;
         vc.hidesBottomBarWhenPushed = YES;
         [self.navigationController pushViewController:vc animated:YES];
-    }
-}
-
-#pragma mark - KATAFocusViewController Delegate
-- (void)didClickFocusItemButton:(id)sender
-{
-    if ([sender isKindOfClass:[BOKUBannerImageButton class]]) {
-        //Slider PUSH
-        BOKUBannerImageButton *btn = (BOKUBannerImageButton *)sender;
-        if (btn.slider && [btn.slider isKindOfClass:[AdvVO class]]) {
-            AdvVO *vo = (AdvVO *)btn.slider;
-            if (vo.Type) {
-                NSInteger type = [vo.Type intValue];
-                switch (type) {
-                    case 1:
-                    {
-                        //商品详情页
-                        if (vo.Key && [vo.Key intValue] != -1) {
-                            kata_ProductDetailViewController *detailVC = [[kata_ProductDetailViewController alloc] initWithProductID:[vo.Key intValue] andType:nil andSeckillID:-1];
-                            [detailVC setHidesBottomBarWhenPushed:YES];
-                            detailVC.navigationController = self.navigationController;
-                            [self.navigationController pushViewController:detailVC animated:YES];
-                        }
-                    }
-                        break;
-                        
-                    case 2:
-                    {
-                        //商品列表页
-                        if (vo.Key && [vo.Key intValue] != -1) {
-                            kata_ProductListViewController *productlistVC = [[kata_ProductListViewController alloc] initWithBrandID:[vo.Key intValue] andTitle:vo.Title andProductID:0 andPlatform:nil isChannel:NO];
-                            [productlistVC setHidesBottomBarWhenPushed:YES];
-                            productlistVC.navigationController = self.navigationController;
-                            [self.navigationController pushViewController:productlistVC animated:YES];
-                        }
-                    }
-                        break;
-                        
-                    case 3:
-                    {
-                        //web页
-                        if (vo.Key && ![vo.Key isEqualToString:@""]) {
-                            NSString *webtitle = nil;
-                            if (vo.Title && ![vo.Title isEqualToString:@""]) {
-                                webtitle = vo.Title;
-                            } else {
-                                webtitle = @"辣妈汇活动页";
-                            }
-                            kata_WebViewController *webVC = [[kata_WebViewController alloc] initWithUrl:vo.Key title:webtitle andType:@"lamahui"];
-                            [webVC setHidesBottomBarWhenPushed:YES];
-                            webVC.navigationController = self.navigationController;
-                            [self.navigationController pushViewController:webVC animated:YES];
-                        }
-                    }
-                        break;
-                    case 4:// 频道类.
-                    {
-//                        if (self.delegate!=nil && [self.delegate respondsToSelector:@selector(kata_HomeViewController)]) {
-//                            //[self.delegate kata_HomeViewController:self didSelectedAdV:vo];
-//                        }
-                    }
-                        break;
-                    case 5://活动类
-                    {
-                        if ([vo.Key isEqualToString:@"oneSecKill"]) {// 秒杀活动
-//                            [[LMHUIManager sharedUIManager] toSeckillActivityVC];
-                        }else if ([vo.Key isEqualToString:@"limit_num"]){
-                            //限量抢购
-                            if (vo.Key && [vo.Key intValue] != -1) {
-                                kata_ProductListViewController *productlistVC = [[kata_ProductListViewController alloc] initWithBrandID:[vo.Key intValue] andTitle:vo.Title andProductID:0 andPlatform:nil isChannel:NO];
-                                [productlistVC setHidesBottomBarWhenPushed:YES];
-                                productlistVC.navigationController = self.navigationController;
-                                [self.navigationController pushViewController:productlistVC animated:YES];
-                            }
-                        }
-                    }
-                        break;
-                    default:
-                        break;
-                }
-            }
-        }
     }
 }
 

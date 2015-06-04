@@ -7,12 +7,11 @@
 //
 
 #import <UIKit/UIKit.h>
-#import "kata_IndexAdvFocusViewController.h"
 #import "FTStatefulTableViewController.h"
 #import "kata_LoginViewController.h"
 #import "LimitedSeckillCell.h"
 
-@interface LimitedSeckillViewController : FTStatefulTableViewController<KATAFocusViewControllerDelegate,LoginDelegate,LimitedSeckillCellDelegate>
+@interface LimitedSeckillViewController : FTStatefulTableViewController<LoginDelegate,LimitedSeckillCellDelegate>
 @end
 
 @interface NSDate (WQCalendarLogic)

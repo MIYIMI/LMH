@@ -22,6 +22,7 @@
 @synthesize stock;
 @synthesize buy_max;
 @synthesize buy_min;
+@synthesize discount_word;
 
 + (CartProductVO *)CartProductVOWithJSONString:(NSString *)jsonString usingEncoding:(NSStringEncoding)stringEncoding error:(NSError **)error
 {
@@ -90,6 +91,10 @@
             self.options = [GoodOptionVO GoodOptionVOListWithArray:[dictionary objectForKey:@"options"]];
         }
         
+        if (nil != [dictionary objectForKey:@"discount_word"] && ![[dictionary objectForKey:@"discount_word"] isEqual:[NSNull null]] && [[dictionary objectForKey:@"discount_word"] isKindOfClass:[NSArray class]]) {
+            self.discount_word = [CartBrandDis CartBrandDisWithArray:[dictionary objectForKey:@"discount_word"]];
+        }
+        
         if (nil != [dictionary objectForKey:@"item_id"] && ![[dictionary objectForKey:@"item_id"] isEqual:[NSNull null]]) {
             self.item_id = [dictionary objectForKey:@"item_id"];
         }
@@ -153,6 +158,52 @@
     
     [super dealloc];
 #endif
+}
+
+@end
+
+
+@implementation CartBrandDis
+
++ (CartBrandDis *)CartBrandDisWithDictionary:(NSDictionary *)dictionary{
+    
+    CartBrandDis *instance = [[CartBrandDis alloc] initWithDictionary:dictionary];
+    return JSONAutoRelease(instance);
+}
+
++ (NSArray *)CartBrandDisWithArray:(NSArray *)array{
+    
+    NSMutableArray *resultsArray = [[NSMutableArray alloc] init];
+    
+    for (id entry in array) {
+        if (![entry isKindOfClass:[NSDictionary class]]) {
+            continue;
+        }
+        
+        [resultsArray addObject:[CartBrandDis CartBrandDisWithDictionary:entry]];
+    }
+    
+    return JSONAutoRelease(resultsArray);
+}
+
+- (id)initWithDictionary:(NSDictionary *)dictionary{
+    
+    self = [super init];
+    if (self) {
+        if (nil != [dictionary objectForKey:@"discount_title"] && ![[dictionary objectForKey:@"discount_title"] isEqual:[NSNull null]]) {
+            self.discount_title = [dictionary objectForKey:@"discount_title"];
+        }
+        
+        if (nil != [dictionary objectForKey:@"discount_end_time"] && ![[dictionary objectForKey:@"discount_end_time"] isEqual:[NSNull null]]) {
+            self.discount_end_time = [dictionary objectForKey:@"discount_end_time"];
+        }
+        
+        if (nil != [dictionary objectForKey:@"discount_money"] && ![[dictionary objectForKey:@"discount_money"] isEqual:[NSNull null]]) {
+            self.discount_money = [dictionary objectForKey:@"discount_money"];
+        }
+    }
+    
+    return self;
 }
 
 @end

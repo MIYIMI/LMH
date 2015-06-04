@@ -31,7 +31,7 @@
     if (webView != self.webView) { return; }
     NSString *web_title = [webView stringByEvaluatingJavaScriptFromString:@"document.title"];
     NSString *web_url = [webView stringByEvaluatingJavaScriptFromString:@"document.location.href"];
-//    NSLog(@">>>>>>>>>%@", web_url);
+
     if ([web_url rangeOfString:@"detail.m"].location == NSNotFound) {
     } else {
         if (ossss == NO) {
@@ -108,6 +108,14 @@
 }
 
 - (BOOL)webView:(UIWebView *)webView shouldStartLoadWithRequest:(NSURLRequest *)request navigationType:(UIWebViewNavigationType)navigationType {
+    
+//    if ([self.brigeDelegate respondsToSelector:@selector(pullView)]) {
+//        if(!self.brigeDelegate.show){
+//            [self.brigeDelegate pullView];
+//            self.brigeDelegate.show = NO;
+//        }
+//    }
+    
     if (webView != self.webView) { return YES; }
     
     NSURL *url = [request URL];

@@ -11,7 +11,6 @@
 #import "kata_ProductDetailViewController.h"
 #import <AVFoundation/AVFoundation.h>
 #import "AdvVO.h"
-#import "kata_DescribeViewController.h"
 #import "kata_ProductListViewController.h"
 #import "kata_WebViewController.h"
 #import "kata_ActivityViewController.h"
@@ -111,7 +110,6 @@
         NSData *respData = [string dataUsingEncoding:NSUTF8StringEncoding allowLossyConversion:YES];
         NSDictionary *respDict = [NSJSONSerialization JSONObjectWithData:respData options:NSJSONReadingMutableLeaves error:nil];
         AdvVO *adv = [AdvVO AdvVOWithDictionary:respDict];
-        NSLog(@">>%@", adv);
         [self nextView:adv];
     }else{
         alertView=[[UIAlertView alloc]initWithTitle:@"二维码内容"message:symbolStr delegate:self cancelButtonTitle:@"确定"otherButtonTitles:nil];
@@ -316,15 +314,6 @@
                 break;
             case 1://商品详情页
             {
-                if(![nextVO.platform isEqualToString:@"lamahui"]){
-                    kata_DescribeViewController *webVC = [[kata_DescribeViewController alloc] initWithProductID:[nextVO.Key integerValue] andPlatform:nextVO.platform];
-                    webVC.navigationController = self.navigationController;
-                    webVC.hidesBottomBarWhenPushed = YES;
-                    [self.navigationController pushViewController:webVC animated:YES];
-                    
-                    return;
-                }
-                
                 if (nextVO.Key && [nextVO.Key intValue] != -1) {
                     kata_ProductDetailViewController *detailVC = [[kata_ProductDetailViewController alloc] initWithProductID:[nextVO.Key intValue] andType:nil andSeckillID:-1];
                     detailVC.hidesBottomBarWhenPushed = YES;
@@ -350,14 +339,6 @@
             {
                 //web页
                 if (nextVO.Key && ![nextVO.Key isEqualToString:@""]) {
-                    if(![nextVO.platform isEqualToString:@"lamahui"]){
-                        kata_DescribeViewController *webVC = [[kata_DescribeViewController alloc] initWithProductID:[nextVO.Key integerValue] andPlatform:nextVO.platform];
-                        webVC.navigationController = self.navigationController;
-                        webVC.hidesBottomBarWhenPushed = YES;
-                        [self.navigationController pushViewController:webVC animated:YES];
-                        
-                        return;
-                    }
                     NSString *webUrl = [nextVO.Key stringByAppendingString:webStr];
                     kata_WebViewController *webVC = [[kata_WebViewController alloc] initWithUrl:webUrl title:nil andType:nextVO.platform];
                     webVC.navigationController = self.navigationController;
@@ -388,14 +369,6 @@
             {
                 //web页可操作app页面
                 if (nextVO.Key && ![nextVO.Key isEqualToString:@""]) {
-                    if(![nextVO.platform isEqualToString:@"lamahui"]){
-                        kata_DescribeViewController *webVC = [[kata_DescribeViewController alloc] initWithProductID:[nextVO.Key integerValue] andPlatform:nextVO.platform];
-                        webVC.navigationController = self.navigationController;
-                        webVC.hidesBottomBarWhenPushed = YES;
-                        [self.navigationController pushViewController:webVC animated:YES];
-                        
-                        return;
-                    }
                     NSString *webUrl = [nextVO.Key stringByAppendingString:webStr];
                     kata_WebViewController *webVC = [[kata_WebViewController alloc] initWithUrl:webUrl title:nil andType:nextVO.platform];
                     webVC.navigationController = self.navigationController;
@@ -426,27 +399,23 @@
             case 9:
             {
                 // 品牌团
-                if (nextVO.Key && [nextVO.Key integerValue] != -1) {
-                    CategoryDetailVC *productlistVC = [[CategoryDetailVC alloc] initWithAdvData:nextVO andFlag:@"get_brand_tuan_list"];
-                    productlistVC.pid = @0;
-                    productlistVC.cateid = [NSNumber numberWithInteger:[nextVO.Key integerValue]];
-                    productlistVC.navigationController = self.navigationController;
-                    productlistVC.hidesBottomBarWhenPushed = YES;
-                    [self.navigationController pushViewController:productlistVC animated:YES];
-                }
+                CategoryDetailVC *productlistVC = [[CategoryDetailVC alloc] initWithAdvData:nextVO andFlag:@"get_brand_tuan_list"];
+                productlistVC.pid = @0;
+                productlistVC.cateid = [NSNumber numberWithInteger:[nextVO.Key integerValue]];
+                productlistVC.navigationController = self.navigationController;
+                productlistVC.hidesBottomBarWhenPushed = YES;
+                [self.navigationController pushViewController:productlistVC animated:YES];
             }
                 break;
             case 10:
             {
                 // 9.9包邮
-                if (nextVO.Key && [nextVO.Key integerValue] != -1) {
-                    CategoryDetailVC *productlistVC = [[CategoryDetailVC alloc] initWithAdvData:nextVO andFlag:@"get_nine_list"];
-                    productlistVC.pid = @0;
-                    productlistVC.cateid = [NSNumber numberWithInteger:[nextVO.Key integerValue]];
-                    productlistVC.navigationController = self.navigationController;
-                    productlistVC.hidesBottomBarWhenPushed = YES;
-                    [self.navigationController pushViewController:productlistVC animated:YES];
-                }
+                CategoryDetailVC *productlistVC = [[CategoryDetailVC alloc] initWithAdvData:nextVO andFlag:@"get_nine_list"];
+                productlistVC.pid = @0;
+                productlistVC.cateid = [NSNumber numberWithInteger:[nextVO.Key integerValue]];
+                productlistVC.navigationController = self.navigationController;
+                productlistVC.hidesBottomBarWhenPushed = YES;
+                [self.navigationController pushViewController:productlistVC animated:YES];
             }
                 break;
             case 12:

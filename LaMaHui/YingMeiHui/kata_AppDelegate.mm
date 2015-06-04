@@ -1,4 +1,5 @@
-    //
+
+//
 //  kata_AppDelegate.m
 //  YingMeiHui
 //
@@ -20,9 +21,6 @@
 #import <QuartzCore/QuartzCore.h>
 #import <Reachability/Reachability.h>
 #import <TencentOpenAPI/TencentOAuth.h>
-
-#import "KTChannelViewController.h"
-#import "KTMCenterTabVC.h"
 #import "KTNavigationController.h"
 #import "kata_MyViewController.h"
 #import "kata_ShopCartViewController.h"
@@ -30,11 +28,12 @@
 #import "IQKeyboardManager.h"
 #import "iRate.h"
 #import "UIDevice+Resolutions.h"
-#import "IIViewDeckController.h"
 #import "kata_CategoryViewController.h"
 #import "TalkingData.h"
 #import <AlipaySDK/AlipaySDK.h>
 #import "KATACheckUtils.h"
+
+#import "LMH_TabBarController.h"
 
 @interface kata_AppDelegate ()
 {
@@ -56,7 +55,9 @@
 
 @implementation kata_AppDelegate
 @synthesize rootVC;
-
+/**
+ *  自动评论弹出框
+ */
 + (void)initialize
 {
     //https://github.com/nicklockwood/iRate#supported-os--sdk-versions
@@ -75,11 +76,16 @@
 - (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions
 {
     self.window = [[UIWindow alloc] initWithFrame:[[UIScreen mainScreen] bounds]];
+    
     NSUserDefaults *userDefaultes = [NSUserDefaults standardUserDefaults];
     NSInteger show = [userDefaultes integerForKey:@"boolShow"];
     if (show == 1) {
         [[NSUserDefaults standardUserDefaults] setBool:NO forKey:@"firstLaunch"];
     }
+    
+    NSNumber *cvNum = [NSNumber numberWithLongLong:[[userDefaultes objectForKey:@"cv"] longLongValue] + 1];
+    [userDefaultes setObject:cvNum forKey:@"cv"];
+    [userDefaultes synchronize];
 
     if(![[NSUserDefaults standardUserDefaults] boolForKey:@"firstLaunch"])
     {
@@ -104,12 +110,8 @@
     
     NSString *userAgent = [[[UIWebView alloc] init] stringByEvaluatingJavaScriptFromString:@"navigator.userAgent"];
     
-    CGRect rect_screen = [[UIScreen mainScreen]bounds];
-    CGFloat scale_screen = [UIScreen mainScreen].scale;
-    NSString *screen_size = [NSString stringWithFormat:@"%.0f*%.0f",rect_screen.size.width*scale_screen,rect_screen.size.height*scale_screen];
-    
     NSString *version = [[NSBundle mainBundle] infoDictionary][@"CFBundleShortVersionString"];
-    NSString *customUserAgent = [NSString stringWithFormat:@"%@ UID/%@ SCR/%@ NET/%@ BRAND/%@ MODEL/%@ OPERATOR/%@ SYSVER/%@ CHANNEL/%@ VER/LMH_IOS_%@",userAgent,[OpenUDID value],screen_size,[[DeviceModel shareModel] netType],[[DeviceModel shareModel] deviceType],[[DeviceModel shareModel] phoneType],[[DeviceModel shareModel] carrierName],[[DeviceModel shareModel] systemOS],@"1200",version];
+    NSString *customUserAgent = [NSString stringWithFormat:@"%@ UID/%@ SCR/%@ NET/%@ BRAND/%@ MODEL/%@ OPERATOR/%@ SYSVER/%@ CHANNEL/%@ VER/LMH_IOS_%@",userAgent,[OpenUDID value],[[DeviceModel shareModel] scrResolution],[[DeviceModel shareModel] netType],[[DeviceModel shareModel] deviceType],[[DeviceModel shareModel] phoneType],[[DeviceModel shareModel] carrierName],[[DeviceModel shareModel] systemOS],@"1200",version];
     [[NSUserDefaults standardUserDefaults] registerDefaults:@{@"UserAgent":customUserAgent}];
     
     [MobClick setAppVersion:[[NSBundle mainBundle] infoDictionary][@"CFBundleShortVersionString"]];
@@ -146,8 +148,16 @@
     
     [UIApplication sharedApplication].applicationIconBadgeNumber = 0;
     
+    // 错误分析
+    [TalkingData setExceptionReportEnabled:YES];
     //TalkingSDK
     [TalkingData sessionStarted:@"FF70BAEDFC446EE7C1BC558B33CC4A46" withChannelId:@"1200"];
+    
+    //取消所有本地通知一次
+    if (![[[NSUserDefaults standardUserDefaults] objectForKey:@"cancelNotif"] boolValue]) {
+        [[UIApplication sharedApplication] cancelAllLocalNotifications];
+        [[NSUserDefaults standardUserDefaults] setObject:@YES forKey:@"cancelNotif"];
+    }
     
     return YES;
 }
@@ -158,7 +168,7 @@
         [self showRemindView];
     }else{
         [[NSUserDefaults standardUserDefaults] setObject:@YES forKey:@"seckill"];
-        [[LMH_GeXinAPNSTool sharedAPNSTool] skipVC];
+        [[LMH_GeXinAPNSTool sharedAPNSTool] pushVC];
     }
     [UIApplication sharedApplication].applicationIconBadgeNumber = 0;
 }
@@ -200,7 +210,7 @@
                                               alpha:1.0];
         [self.window setTintColor:tintColor];
     }
-    
+
     CATransition *transition = [CATransition animation];
     transition.duration = 1.0f; //间隔时间
     transition.timingFunction = [CAMediaTimingFunction functionWithName:kCAMediaTimingFunctionEaseOut]; //动画的开始与结束的快慢
@@ -211,21 +221,13 @@
     
     rootVC = [[kata_CategoryViewController alloc] initWithMenuID:0 andParentID:0 andTitle:nil];
     rootVC.hasTabHeight = NO;
-    KTMCenterTabVC *centerTabVC = [[KTMCenterTabVC alloc] init];
-    if (centerTabVC) {
-        KTNavigationController *navigationController1 = [[KTNavigationController alloc] initWithRootViewController:rootVC];
-        rootVC.navigationController = navigationController1;
-        [centerTabVC setViewControllers:[NSArray arrayWithObjects:navigationController1, nil]];
-    }
     
-    self.deckController =  [[IIViewDeckController alloc] initWithCenterViewController:centerTabVC
-                                                                                    leftViewController:nil
-                                                                                   rightViewController:nil];
-    self.deckController.centerhiddenInteractivity = IIViewDeckCenterHiddenNotUserInteractiveWithTapToClose;
-    self.deckController.rightSize = 0;
+    KTNavigationController *navigationController1 = [[KTNavigationController alloc] initWithRootViewController:rootVC];
+    rootVC.navigationController = navigationController1;
+    LMH_TabBarController *centerTabVC = [[LMH_TabBarController alloc] initWithFisrtVC:navigationController1];
     
-    self.window.rootViewController = self.deckController;
-    [[UIApplication sharedApplication] setStatusBarStyle:UIStatusBarStyleLightContent];
+    self.window.rootViewController = centerTabVC;
+    [[UIApplication sharedApplication] setStatusBarStyle:UIStatusBarStyleDefault];
     
     if ([[NSUserDefaults standardUserDefaults] objectForKey:@"getdevicetoken"]) {
         if([[[NSUserDefaults standardUserDefaults] objectForKey:@"getdevicetoken"] isEqualToString:@"YES"])
@@ -233,6 +235,8 @@
             [[LMH_GeXinAPNSTool sharedAPNSTool] registerRemoteNotification];
         }
     }
+    //进入app强制拉取首页数据
+    [[NSUserDefaults standardUserDefaults] setObject:@"1234567890" forKey:@"home_secret"];
 }
 
 - (void)applicationWillResignActive:(UIApplication *)application
@@ -359,11 +363,10 @@
     return YES;
 }
 
-#pragma mark - StartupInfoGetRequest
+#pragma mark - StartupInfoGetRequest  首页启动图
 - (void)starupOperation
 {
-    KTStartupInfoGetRequest *req = [[KTStartupInfoGetRequest alloc]
-           initWithNone];
+    KTStartupInfoGetRequest *req = [[KTStartupInfoGetRequest alloc] init];
     
     KTProxy *proxy = [KTProxy loadWithRequest:req completed:^(NSString *resp, NSStringEncoding encoding) {
         
@@ -390,43 +393,39 @@
         if ([statusStr isEqualToString:@"OK"]) {
             if (nil != [respDict objectForKey:@"data"] && ![[respDict objectForKey:@"data"] isEqual:[NSNull null]] && [[respDict objectForKey:@"data"] isKindOfClass:[NSDictionary class]]) {
                 
-                NSDictionary *dataObj = (NSDictionary *)[respDict objectForKey:@"data"];
+                NSDictionary *dataObj = [respDict objectForKey:@"data"];
+                
+                NSUserDefaults *def = [NSUserDefaults standardUserDefaults];
+                [def setObject:dataObj[@"app_cache_secret"]?dataObj[@"app_cache_secret"]:@"123456790" forKey:@"menu_secret"];
+                [def synchronize];
+                
                 if ([[dataObj objectForKey:@"code"] integerValue] == 0) {
-                    if (nil != [dataObj objectForKey:@"menus"] && ![[dataObj objectForKey:@"menus"] isEqual:[NSNull null]] && [[dataObj objectForKey:@"menus"] isKindOfClass:[NSArray class]]) {
-                        _menusArr = [MenuVO MenuVOListWithArray:[dataObj objectForKey:@"menus"]];
+                    
+                    StartVO *svo = [StartVO StartVOWithDictionary:dataObj];
+                    _menusArr = svo.menus;
+                    
+                    NSUserDefaults *userDef = [NSUserDefaults standardUserDefaults];
+                    [userDef setObject:svo.third_login_flag?svo.third_login_flag:@1 forKey:@"third_login_flag"];
+                    [userDef setObject:svo.user_uuid?svo.user_uuid:@"00000" forKey:@"user_uuid"];
+                    
+                    if (svo.tutorials.count > 0 && [[[DeviceModel shareModel] phoneType] hasPrefix:@"iPhone 4"]) {
+                        _tutorialsArr = svo.tutorials;
+                        [userDef setObject:_tutorialsArr forKey:@"startImage"];
+                        [self performSelectorOnMainThread:@selector(addStartImage:) withObject:_tutorialsArr waitUntilDone:YES];
                     }
-                    if([dataObj objectForKey:@"third_login_flag"]){
-                        NSUserDefaults *userDef = [NSUserDefaults standardUserDefaults];
-                        [userDef setObject:[dataObj objectForKey:@"third_login_flag"] forKey:@"third_login_flag"];
-                        [userDef synchronize];
+                    
+                    if (svo.tutorials_big.count > 0 && ![[[DeviceModel shareModel] phoneType] hasPrefix:@"iPhone 4"]) {
+                        _tutorials_bigArr = (NSArray *)[dataObj objectForKey:@"tutorials_big"];
+                        [userDef setObject:_tutorials_bigArr forKey:@"startImage"];
+                        [self performSelectorOnMainThread:@selector(addStartImage:) withObject:_tutorials_bigArr waitUntilDone:YES];
                     }
-                    if (nil != [dataObj objectForKey:@"user_uuid"] && ![[dataObj objectForKey:@"user_uuid"] isEqual:[NSNull null]] && [[dataObj objectForKey:@"user_uuid"] isKindOfClass:[NSString class]]) {
-                        NSUserDefaults *userDef = [NSUserDefaults standardUserDefaults];
-                        [userDef setObject:[dataObj objectForKey:@"user_uuid"] forKey:@"user_uuid"];
+                    
+                    [userDef setBool:[svo.is_show boolValue] forKey:@"boolShow"];
+                    if (svo.service_phone) {
+                        [userDef setObject:svo.service_phone forKey:@"service_phone"];
                     }
-                    if (nil != [dataObj objectForKey:@"tutorials"] && ![[dataObj objectForKey:@"tutorials"] isEqual:[NSNull null]] && [[dataObj objectForKey:@"tutorials"] isKindOfClass:[NSArray class]]) {
-                        if ([[[DeviceModel shareModel] phoneType] hasPrefix:@"iPhone 4"]) {
-                            _tutorialsArr = (NSArray *)[dataObj objectForKey:@"tutorials"];
-                            NSUserDefaults *userDefaults = [NSUserDefaults standardUserDefaults];
-                            [userDefaults setObject:_tutorialsArr forKey:@"startImage"];
-                            [self performSelectorOnMainThread:@selector(addStartImage:) withObject:_tutorialsArr waitUntilDone:YES];
-                        }
-                    }
-                    if (nil != [dataObj objectForKey:@"tutorials_big"] && ![[dataObj objectForKey:@"tutorials_big"] isEqual:[NSNull null]] && [[dataObj objectForKey:@"tutorials_big"] isKindOfClass:[NSArray class]]) {
-                        
-                        if (![[[DeviceModel shareModel] phoneType] hasPrefix:@"iPhone 4"]) {
-                            _tutorials_bigArr = (NSArray *)[dataObj objectForKey:@"tutorials_big"];
-                            NSUserDefaults *userDefaults = [NSUserDefaults standardUserDefaults];
-                            [userDefaults setObject:_tutorials_bigArr forKey:@"startImage"];
-                            [self performSelectorOnMainThread:@selector(addStartImage:) withObject:_tutorials_bigArr waitUntilDone:YES];
-                        }
-                    }
-                    if (nil != [dataObj objectForKey:@"is_show"] && ![[dataObj objectForKey:@"is_show"] isEqual:[NSNull null]]) {
-                        [[NSUserDefaults standardUserDefaults] setBool:[[dataObj objectForKey:@"is_show"] intValue] forKey:@"boolShow"];
-                    }
-                    if (nil != [dataObj objectForKey:@"service_phone"] && ![[dataObj objectForKey:@"service_phone"] isEqual:[NSNull null]] && [[dataObj objectForKey:@"service_phone"] isKindOfClass:[NSString class]]) {
-                        [[NSUserDefaults standardUserDefaults] setObject:[dataObj objectForKey:@"service_phone"] forKey:@"service_phone"];
-                    }
+                    [userDef synchronize];
+                    
                     if (dataObj) {
                         [[kata_UserManager sharedUserManager] updateMenuData:dataObj];
                     }
@@ -449,23 +448,32 @@
 -(void)cacheMenu{
     if ([[kata_UserManager sharedUserManager] getMenuData]) {
         NSDictionary *dataObj = [[kata_UserManager sharedUserManager] getMenuData];
-        if (nil != [dataObj objectForKey:@"menus"] && ![[dataObj objectForKey:@"menus"] isEqual:[NSNull null]] && [[dataObj objectForKey:@"menus"] isKindOfClass:[NSArray class]]) {
-            _menusArr = [MenuVO MenuVOListWithArray:[dataObj objectForKey:@"menus"]];
+        StartVO *svo = [StartVO StartVOWithDictionary:dataObj];
+        _menusArr = svo.menus;
+        
+        NSUserDefaults *userDef = [NSUserDefaults standardUserDefaults];
+        [userDef setObject:svo.third_login_flag?svo.third_login_flag:@1 forKey:@"third_login_flag"];
+        [userDef setObject:svo.user_uuid?svo.user_uuid:@"00000" forKey:@"user_uuid"];
+        
+        
+        if (svo.tutorials.count > 0 && [[[DeviceModel shareModel] phoneType] hasPrefix:@"iPhone 4"]) {
+            _tutorialsArr = svo.tutorials;
+            [userDef setObject:_tutorialsArr forKey:@"startImage"];
+            [self performSelectorOnMainThread:@selector(addStartImage:) withObject:_tutorialsArr waitUntilDone:YES];
         }
         
-        if (nil != [dataObj objectForKey:@"user_uuid"] && ![[dataObj objectForKey:@"user_uuid"] isEqual:[NSNull null]] && [[dataObj objectForKey:@"user_uuid"] isKindOfClass:[NSString class]]) {
-            NSUserDefaults *userDef = [NSUserDefaults standardUserDefaults];
-            [userDef setObject:[dataObj objectForKey:@"user_uuid"] forKey:@"user_uuid"];
-        }
-        if (nil != [dataObj objectForKey:@"tutorials"] && ![[dataObj objectForKey:@"tutorials"] isEqual:[NSNull null]] && [[dataObj objectForKey:@"tutorials"] isKindOfClass:[NSArray class]]) {
-            _tutorialsArr = (NSArray *)[dataObj objectForKey:@"tutorials"];
-        }
-        if (nil != [dataObj objectForKey:@"tutorials_big"] && ![[dataObj objectForKey:@"tutorials_big"] isEqual:[NSNull null]] && [[dataObj objectForKey:@"tutorials_big"] isKindOfClass:[NSArray class]]) {
+        if (svo.tutorials_big.count > 0 && ![[[DeviceModel shareModel] phoneType] hasPrefix:@"iPhone 4"]) {
             _tutorials_bigArr = (NSArray *)[dataObj objectForKey:@"tutorials_big"];
+            [userDef setObject:_tutorials_bigArr forKey:@"startImage"];
+            [self performSelectorOnMainThread:@selector(addStartImage:) withObject:_tutorials_bigArr waitUntilDone:YES];
         }
-        if (nil != [dataObj objectForKey:@"service_phone"] && ![[dataObj objectForKey:@"service_phone"] isEqual:[NSNull null]] && [[dataObj objectForKey:@"service_phone"] isKindOfClass:[NSString class]]) {
-            [[NSUserDefaults standardUserDefaults] setObject:[dataObj objectForKey:@"service_phone"] forKey:@"service_phone"];
+        
+        [userDef setBool:[svo.is_show boolValue] forKey:@"boolShow"];
+        if (svo.service_phone) {
+            [userDef setObject:svo.service_phone forKey:@"service_phone"];
         }
+        [userDef synchronize];
+        
         backFlag = YES;
         [self performSelectorOnMainThread:@selector(initRootView) withObject:nil waitUntilDone:YES];
     }else{

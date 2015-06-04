@@ -23,7 +23,7 @@
         _imgView.layer.cornerRadius  = (ScreenW/4*3-60)/4;
         [self.contentView addSubview:_imgView];
     }
-    [_imgView sd_setImageWithURL:[NSURL URLWithString:model.image] placeholderImage:[UIImage imageNamed:@"place_2"]];
+    [_imgView sd_setImageWithURL:[NSURL URLWithString:model.image] placeholderImage:nil];
     //列表标题
     if (!_titleLbl) {
         _titleLbl = [[UILabel alloc] initWithFrame:CGRectMake(0, CGRectGetMaxY(_imgView.frame), (ScreenW/4*3-60)/2, (ScreenW/4*3-60)/2*0.3)];

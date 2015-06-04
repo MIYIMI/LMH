@@ -7,13 +7,12 @@
 //
 
 #import "KTNavigationController.h"
-#import "KTChannelViewController.h"
 #import "kata_MyViewController.h"
 #import "kata_ProductListViewController.h"
 #import "kata_AllOrderListViewController.h"
 
 //#define MAIN_NAV_BG_NAME @"nav_bg"
-#define MAIN_NAV_BG_NAME @"nav_bg_red"
+#define MAIN_NAV_BG_NAME @"nav_bg_white"
 
 @interface KTNavigationController ()
 
@@ -29,13 +28,13 @@
 {
     self = [super initWithRootViewController:rootViewController];
     if (self) {
-        NSDictionary* attrs = @{UITextAttributeTextColor:[UIColor whiteColor],
+        NSDictionary* attrs = @{UITextAttributeTextColor:RGB(69, 69, 69),
                                 UITextAttributeTextShadowColor:[UIColor clearColor],
                                 UITextAttributeFont:[UIFont boldSystemFontOfSize:18]};
         [self.navigationBar setTitleTextAttributes:attrs];
         
         [self.navigationBar setBackgroundImage:[UIImage imageNamed:MAIN_NAV_BG_NAME] forBarMetrics:UIBarMetricsDefault];
-        [self.navigationBar setShadowImage:[[UIImage alloc] init]];
+//        [self.navigationBar setShadowImage:[[UIImage alloc] init]];
         
         self.navigationController.navigationBar.translucent = NO;
         self.delegate = self;
@@ -93,8 +92,8 @@
 {
     if (_ifRootLeftButton) {
         UIButton * backBarButton = [[UIButton alloc] initWithFrame:CGRectMake(0, 0, 20, 27)];
-        [backBarButton setImage:[UIImage imageNamed:@"return"] forState:UIControlStateNormal];
-        [backBarButton setImage:[UIImage imageNamed:@"return"] forState:UIControlStateHighlighted];
+        [backBarButton setImage:[UIImage imageNamed:@"icon_goback_gray"] forState:UIControlStateNormal];
+        [backBarButton setImage:[UIImage imageNamed:@"icon_goback_gray"] forState:UIControlStateHighlighted];
         
         UIBarButtonItem * backBarButtonItem = [[UIBarButtonItem alloc] initWithCustomView:backBarButton];
         backBarButtonItem.style = UIBarButtonItemStylePlain;
@@ -102,8 +101,8 @@
         return backBarButtonItem;
     }else{
         UIButton * backBarButton = [[UIButton alloc] initWithFrame:CGRectMake(0, 0, 20, 27)];
-        [backBarButton setImage:[UIImage imageNamed:@"return"] forState:UIControlStateNormal];
-        [backBarButton setImage:[UIImage imageNamed:@"return"] forState:UIControlStateHighlighted];
+        [backBarButton setImage:[UIImage imageNamed:@"icon_goback_gray"] forState:UIControlStateNormal];
+        [backBarButton setImage:[UIImage imageNamed:@"icon_goback_gray"] forState:UIControlStateHighlighted];
         
         [backBarButton addTarget:self action:@selector(popSelf) forControlEvents:UIControlEventTouchUpInside];
         
@@ -155,6 +154,10 @@
     
     [viewController viewWillAppear:animated];
 }
+
+//- (void)setTitle:(NSString *)title{
+//    self.title = title;
+//}
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 #pragma mark -

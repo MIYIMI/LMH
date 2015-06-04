@@ -14,7 +14,7 @@
 
 @protocol KTOrderDetailProductTableViewCellDelegate <NSObject>
 
-- (void)returnOrder:(OrderGoodsVO*)orderData;
+- (void)orderBtnClick:(NSInteger)tag andVO:(OrderGoodsVO*)orderData;
 
 - (void)writeOrder:(ReturnOrderDetailVO*)returnData;
 
@@ -25,6 +25,7 @@
 - (void)setItemData:(OrderGoodsVO *)ItemData  andReturnData:(ReturnOrderDetailVO*)returnData andType:(NSInteger)type;
 
 @property (strong, nonatomic) id<KTOrderDetailProductTableViewCellDelegate> delegate;
+
 
 @property(nonatomic,strong)NSIndexPath *indexpath;
 

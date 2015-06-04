@@ -64,7 +64,7 @@ static const CGFloat kTabBarHeight = 35.0f;
 #define RED_COLOR         [UIColor colorWithRed:1 green:0.39 blue:0.49 alpha:1]
 #define TABLE_COLOR       [UIColor colorWithRed:0.91 green:0.91 blue:0.91 alpha:1]
 #define TEXTV_COLOR       [UIColor colorWithRed:0.21 green:0.21 blue:0.21 alpha:1]
-#define DETAIL_COLOR       [UIColor colorWithRed:0.51 green:0.51 blue:0.51 alpha:1]
+#define DETAIL_COLOR      [UIColor colorWithRed:0.51 green:0.51 blue:0.51 alpha:1]
 #define ALL_COLOR         RGB(241, 71, 134)
 
 #define LMH_COLOR_BLACK         RGB(51, 51, 51)
@@ -76,6 +76,7 @@ static const CGFloat kTabBarHeight = 35.0f;
 #define LMH_COLOR_LIGHTLINE     RGB(240,240,240)
 #define LMH_COLOR_CELL          RGB(250,250,250)
 #define LMH_COLOR_BACK          RGB(242,242,242)
+#define LMH_COLOR_LIGHTbLUE     RGB(54, 130, 183)
 
 //字体
 #define FONT(s)          [UIFont systemFontOfSize:s]
@@ -89,7 +90,10 @@ static const CGFloat kTabBarHeight = 35.0f;
 #define LMH_FONT_12          [UIFont systemFontOfSize:12]
 #define LMH_FONT_11          [UIFont systemFontOfSize:11]
 #define LMH_FONT_10          [UIFont systemFontOfSize:10]
-#define LMH_FONT_9          [UIFont systemFontOfSize:9]
+#define LMH_FONT_9           [UIFont systemFontOfSize:9]
+
+//按比例计算尺寸 设计稿是以720为基准
+#define RATIO(size)      size*ScreenW/720
 
 //图片加载
 #define LOCAL_IMG(img)   [UIImage imageNamed:img]

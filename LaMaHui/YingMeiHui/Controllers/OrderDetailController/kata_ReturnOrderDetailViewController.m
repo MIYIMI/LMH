@@ -67,9 +67,9 @@
 
 - (void)createUI{
     UIButton * backBarButton = [[UIButton alloc] initWithFrame:CGRectMake(0, 0, 20, 27)];
-    [backBarButton setImage:[UIImage imageNamed:@"return"] forState:UIControlStateNormal];
-    [backBarButton setImage:[UIImage imageNamed:@"return"] forState:UIControlStateHighlighted];
-    [backBarButton addTarget:self action:@selector(popToVC:) forControlEvents:UIControlEventTouchUpInside];
+    [backBarButton setImage:[UIImage imageNamed:@"icon_goback_gray"] forState:UIControlStateNormal];
+    [backBarButton setImage:[UIImage imageNamed:@"icon_goback_gray"] forState:UIControlStateHighlighted];
+    [backBarButton addTarget:self action:@selector(popToVC) forControlEvents:UIControlEventTouchUpInside];
     
     UIBarButtonItem * backBarButtonItem = [[UIBarButtonItem alloc] initWithCustomView:backBarButton];
     backBarButtonItem.style = UIBarButtonItemStylePlain;
@@ -112,7 +112,7 @@
     [paramsDict setObject:@"get_refund_info" forKey:@"method"];
     
     KTProxy *proxy = [KTProxy loadWithRequest:req completed:^(NSString *resp, NSStringEncoding encoding) {
-        
+        [self hideHUD];
         [self performSelectorOnMainThread:@selector(RetrunOrderDetailParseResponse:) withObject:resp waitUntilDone:YES];
         
     } failed:^(NSError *error) {
@@ -135,7 +135,6 @@
             if ([respDict objectForKey:@"data"] != nil && ![[respDict objectForKey:@"data"] isEqual:[NSNull null]]) {
                 detailReturnVO = [ReturnOrderDetailVO ReturnOrderDetailVOWithDictionary:[respDict objectForKey:@"data"]];
                 _addressVO = detailReturnVO.partner_info;
-                [self hideHUD];
                 [self.tableView reloadData];
                 return;
             }
@@ -246,7 +245,7 @@
                 [adressNameLbl setFrame:CGRectMake(45, CGRectGetMaxY(adressDetailLbl.frame) + 10, nameSize.width, nameSize.height)];
                 
                 UILabel *adressPhoneLbl = [[UILabel alloc] initWithFrame:CGRectZero];
-                [adressPhoneLbl setTextColor:[UIColor colorWithRed:0.22 green:0.22 blue:0.22 alpha:1]];
+                [adressPhoneLbl setTextColor:LMH_COLOR_BLACK];
                 [adressPhoneLbl setFont:[UIFont systemFontOfSize:12.0]];
                 adressPhoneLbl.numberOfLines = 0;// 不可少Label属性之一
                 adressPhoneLbl.lineBreakMode = NSLineBreakByCharWrapping;// 不可少Label属性之二
@@ -272,8 +271,8 @@
             [cell.imageView setImage:[UIImage imageNamed:@"order_l"]];
             NSString *textStr = [NSString stringWithFormat:@"售后状态 : %@", detailReturnVO.refund_status_name];
             NSMutableAttributedString *str = [[NSMutableAttributedString alloc] initWithString:textStr];
-            [str addAttribute:NSForegroundColorAttributeName value:[UIColor colorWithRed:0.29 green:0.29 blue:0.29 alpha:1] range:NSMakeRange(0,7)];
-            [str addAttribute:NSForegroundColorAttributeName value:[UIColor colorWithRed:0.98 green:0.21 blue:0.36 alpha:1] range:NSMakeRange(7,textStr.length-7)];
+            [str addAttribute:NSForegroundColorAttributeName value:LMH_COLOR_GRAY range:NSMakeRange(0,7)];
+            [str addAttribute:NSForegroundColorAttributeName value:LMH_COLOR_SKIN range:NSMakeRange(7,textStr.length-7)];
             [str addAttribute:NSFontAttributeName value:FONT(14.0) range:NSMakeRange(0, textStr.length)];
             cell.textLabel.attributedText = str;
         }else if(row == 3){
@@ -426,6 +425,7 @@
 #pragma mark - 取消退款申请
 - (void)cancelRefundOperation
 {
+    [self loadHUD];
     KTBaseRequest *req = [[KTBaseRequest alloc] init];
     
     NSString *userid = nil;
@@ -461,8 +461,10 @@
     [paramsDict setObject:@"cancel_refund_order" forKey:@"method"];
     
     KTProxy *proxy = [KTProxy loadWithRequest:req completed:^(NSString *resp, NSStringEncoding encoding) {
+        [self hideHUD];
         [self performSelectorOnMainThread:@selector(cancelRefundResponse:) withObject:resp waitUntilDone:YES];
     } failed:^(NSError *error) {
+        [self hideHUD];
         [self performSelectorOnMainThread:@selector(textStateHUD:) withObject:@"网络错误" waitUntilDone:YES];
     }];
     
@@ -478,7 +480,11 @@
         NSString *statusStr = [respDict objectForKey:@"status"];
         if ([statusStr isEqualToString:@"OK"] && [statusStr isEqualToString:@"code"] == 0) {
             [self textStateHUD:@"取消退款已成功"];
-            [self performSelector:@selector(popPreVC) withObject:nil afterDelay:0.5];
+            
+            [[NSNotificationCenter defaultCenter] postNotificationName:@"flashOrder" object:nil];
+            [[NSNotificationCenter defaultCenter] postNotificationName:@"flashDetail" object:nil];
+            
+            [self.navigationController popViewControllerAnimated:YES];
         }else{
             [self textStateHUD:[respDict objectForKey:@"msg"]];
         }
@@ -487,16 +493,7 @@
     }
 }
 
-- (void)popPreVC{
-    [[NSNotificationCenter defaultCenter] postNotificationName:@"flashOrder" object:nil];
-    [self performSelectorOnMainThread:@selector(popToVC:) withObject:[NSNumber numberWithBool:YES] waitUntilDone:YES];
-}
-
-- (void)returnOrder:(OrderGoodsVO *)orderData{
-    UIAlertView *alertView = [[UIAlertView alloc] initWithTitle:@"取消退款" message:@"确定取消退款?" delegate:self cancelButtonTitle:@"确定" otherButtonTitles:@"取消", nil];
-    [alertView show];
-}
-
+//取消退款
 - (void)alertView:(UIAlertView *)alertView clickedButtonAtIndex:(NSInteger)buttonIndex
 {
     if (buttonIndex == 0) {
@@ -504,6 +501,21 @@
     }
 }
 
+#pragma mark - 退款商品按钮操作
+- (void)orderBtnClick:(NSInteger)tag andVO:(OrderGoodsVO *)orderData{
+    switch (tag) {
+        case 8://取消退款
+        {
+            UIAlertView *alertView = [[UIAlertView alloc] initWithTitle:@"取消退款" message:@"确定取消退款?" delegate:self cancelButtonTitle:@"确定" otherButtonTitles:@"取消", nil];
+            
+            [alertView show];
+        }
+        default:
+            break;
+    }
+}
+
+#pragma mark - 填写寄件信息
 - (void)writeOrder:(OrderGoodsVO *)orderData{
     kata_ReturnGoodsViewController *returnGoodsVC = [[kata_ReturnGoodsViewController alloc] initWithAddress:_addressVO andPartID:[_goodVO.order_part_id integerValue]];
     returnGoodsVC.navigationController = self.navigationController;
@@ -511,13 +523,13 @@
     [self.navigationController pushViewController:returnGoodsVC animated:YES];
 }
 
-- (void)popToVC:(id)sender{
-    [[NSNotificationCenter defaultCenter] postNotificationName:@"flashOrder" object:nil];
-    if ([sender isKindOfClass:[UIButton class]] && !_type) {
+#pragma mark - 返回
+- (void)popToVC{
+    if (!_type) {
         [self.navigationController popViewControllerAnimated:YES];
     }else{
         for (UIViewController *vc in self.navigationController.viewControllers) {
-            if ([vc isKindOfClass:[kata_OrderManageViewController class]] || [vc isKindOfClass:[kata_AllOrderListViewController class]]) {
+            if ([vc isKindOfClass:[kata_OrderManageViewController class]] || [vc isKindOfClass:[kata_AllOrderListViewController class]] || [vc isKindOfClass:[kata_AllOrderListViewController class]]) {
                 [self.navigationController popToViewController:vc animated:YES];
             }
         }

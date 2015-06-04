@@ -11,7 +11,6 @@
 #import "KTUserInfoGetRequest.h"
 #import "kata_AddressListViewController.h"
 #import "kata_OrderManageViewController.h"
-#import "kata_WalletViewController.h"
 #import "kata_FeedbackManageViewController.h"
 #import "kata_AboutViewController.h"
 #import "kata_SettingsViewController.h"
@@ -30,6 +29,7 @@
 #import "kata_OrderManageViewController.h"
 #import "LMHContectServiceViewController.h"
 #import "LMHinformationBoxListController.h"
+#import "MyCommentManagerViewController.h"
 
 @interface kata_MyViewController ()
 {
@@ -81,7 +81,7 @@
     if (self) {
         // Custom initialization
         self.ifAddPullToRefreshControl = NO;
-    
+        
         _isroot = isroot;
     }
     return self;
@@ -90,6 +90,9 @@
 - (void)viewWillAppear:(BOOL)animated
 {
     [super viewWillAppear:animated];
+    
+    //导航栏阴影设置（无）
+    [self.navigationController.navigationBar setShadowImage:[[UIImage alloc] init]];
     
     if ([[kata_UserManager sharedUserManager] isLogin]) {
         [self getUserInfoOperation];
@@ -122,6 +125,10 @@
             [headView removeGestureRecognizer:ges];
         }
     }
+    
+    //更换导航条
+    [self.navigationController.navigationBar setBackgroundImage:[UIImage imageNamed:@"nav_my_red"] forBarMetrics:UIBarMetricsDefault];
+    [[UIApplication sharedApplication] setStatusBarStyle:UIStatusBarStyleLightContent];
 }
 
 - (void)viewDidAppear:(BOOL)animated
@@ -140,7 +147,15 @@
         _settingsItem = [[UIBarButtonItem alloc] initWithCustomView:settingsBtn];
     }
 //    [self.navigationController addRightBarButtonItem:_settingsItem animation:NO];
-    [[(kata_AppDelegate *)[[UIApplication sharedApplication] delegate] deckController] setPanningMode:IIViewDeckNoPanning];
+}
+- (void)viewWillDisappear:(BOOL)animated
+{
+    //更换导航条
+    [self.navigationController.navigationBar setBackgroundImage:[UIImage imageNamed:@"nav_bg_white"] forBarMetrics:UIBarMetricsDefault];
+    [[UIApplication sharedApplication] setStatusBarStyle:UIStatusBarStyleDefault];
+    
+    //导航栏阴影设置（有）
+    [self.navigationController.navigationBar setShadowImage:nil];
 }
 - (void)informationBtnPress
 {
@@ -152,7 +167,15 @@
 {
     [super viewDidLoad];
     // Do any additional setup after loading the view.
-    self.navigationItem.title=@"个人中心";
+//    self.navigationItem.title=@"个人中心";
+    //自定义 title
+    UILabel *titleLabel = [[UILabel alloc]initWithFrame:CGRectMake(0, 0, 120, 46)];
+    titleLabel.backgroundColor = [UIColor clearColor];
+    titleLabel.text = @"个人中心";
+    titleLabel.textAlignment = NSTextAlignmentCenter;
+    titleLabel.textColor = [UIColor whiteColor];
+    titleLabel.font = FONT(18);
+    self.navigationItem.titleView = titleLabel;
     
     [self createUI];
     [self layoutUserView:nil];
@@ -189,7 +212,7 @@
     if(!_tableData){
         _tableData = [NSMutableArray arrayWithCapacity:3];
         
-        NSString *titleStr = @"全部订单    汇特卖订单/淘宝订单";
+        NSString *titleStr = @"我的订单    汇特卖订单/淘宝订单";
         NSMutableAttributedString *str = [[NSMutableAttributedString alloc] initWithString:titleStr];
         [str addAttribute:NSForegroundColorAttributeName value:[UIColor colorWithRed:0.65 green:0.65 blue:0.65 alpha:1] range:NSMakeRange(8,titleStr.length-8)];
         [str addAttribute:NSFontAttributeName value:FONT(15.0) range:NSMakeRange(0,8)];
@@ -198,12 +221,15 @@
         [_tableData addObject:[NSArray arrayWithObjects:
                                @{@"icon":@"icon_allOrder"      ,@"title":str,@"classname":@"nil"}, nil]];
         [_tableData addObject:[NSArray arrayWithObjects:
-                               @{@"icon":@"icon_myCollector"   ,@"title":@"我的收藏",@"classname":@"nil"},
-                               @{@"icon":@"icon_discountcoupon",@"title":@"优惠券",@"classname":@"nil"},
-                               @{@"icon":@"icon_myBaby"   ,@"title":@"我的宝宝",@"classname":@"nil"},nil]];
+                               @{@"icon":@"icon_discountcoupon",@"title":@"我的红包/优惠券",@"classname":@"nil"},
+                               @{@"icon":@"icon_myBaby"        ,@"title":@"我的宝宝",@"classname":@"nil"},
+                               @{@"icon":@"icon_myCollector"   ,@"title":@"我喜欢的",@"classname":@"nil"},
+                               @{@"icon":@"icon_myComment"     ,@"title":@"我的评论",@"classname":@"nil"},nil]];
         [_tableData addObject:[NSArray arrayWithObjects:
                                @{@"icon":@"icon_tsukkomi"      ,@"title":@"不爽吐槽扔鸡蛋",@"classname":@"nil"},
-                               @{@"icon":@"icon_call"          ,@"title":@"辣妈客服",@"classname":@"nil"}, nil]];
+                               @{@"icon":@"icon_serverLine"    ,@"title":@"在线客服",@"classname":@"nil"},
+                               @{@"icon":@"icon_call"    ,@"title":@"服务热线",@"classname":@"nil"},
+                               nil]];
         [_tableData addObject:[NSArray arrayWithObjects:
                                @{@"icon":@"icon_set"      ,@"title":@"设置",@"classname":@"nil"},nil]];
         
@@ -870,7 +896,7 @@
         }
     }
     if (indexPath.section == 1 ) {
-        if (indexPath.row == 0 || indexPath.row == 1) {
+        if (indexPath.row == 0 || indexPath.row == 1 || indexPath.row == 2) {
             
             UIView *lineView = [[UIView alloc]initWithFrame:CGRectMake(18, 43, ScreenW - 20 , 0.5)];
             lineView.backgroundColor = GRAY_LINE_COLOR;
@@ -878,7 +904,7 @@
         }
     }
     if (indexPath.section == 2 ) {
-        if (indexPath.row == 0 ) {
+        if (indexPath.row == 0 ||indexPath.row == 1) {
             
             UIView *lineView = [[UIView alloc]initWithFrame:CGRectMake(18, 43, ScreenW - 20 , 0.5)];
             lineView.backgroundColor = GRAY_LINE_COLOR;
@@ -925,24 +951,15 @@
                 [kata_LoginViewController showInViewController:self];
                 return;
             }
-            
-            kata_FavListViewController *favVC = [[kata_FavListViewController alloc] initWithStyle:UITableViewStylePlain];
-            favVC.navigationController = self.navigationController;
-            [self.navigationController pushViewController:favVC animated:YES];
-
-            
-        } else if (row == 1) {
-            if (![[kata_UserManager sharedUserManager] isLogin]) {
-                [kata_LoginViewController showInViewController:self];
-                return;
-            }
             //我的优惠券
             kata_CouponViewController *couponVC = [[kata_CouponViewController alloc] initWithStyle:UITableViewStylePlain];
             couponVC.navigationController = self.navigationController;
+            couponVC.hidesBottomBarWhenPushed = YES;
             [self.navigationController pushViewController:couponVC animated:YES];
-
-        }else if (row == 2){
-        
+            
+        } else if (row == 1) {
+            
+            //我的宝宝
             if (![[kata_UserManager sharedUserManager] isLogin]) {
                 [kata_LoginViewController showInViewController:self];
                 return;
@@ -950,6 +967,29 @@
             LMHMybabyViewController *myBaby = [[LMHMybabyViewController alloc]init];
             myBaby.navigationController = self.navigationController;
             [self.navigationController pushViewController:myBaby animated:YES];
+
+        }else if (row == 2){
+        
+            //我的收藏
+            if (![[kata_UserManager sharedUserManager] isLogin]) {
+                [kata_LoginViewController showInViewController:self];
+                return;
+            }
+            
+            kata_FavListViewController *favVC = [[kata_FavListViewController alloc] initWithStyle:UITableViewStylePlain];
+            favVC.hidesBottomBarWhenPushed = YES;
+            favVC.navigationController = self.navigationController;
+            [self.navigationController pushViewController:favVC animated:YES];
+            
+        }
+        else if (row == 3){
+            
+            //我的评论
+            MyCommentManagerViewController *commentViewController = [[MyCommentManagerViewController alloc]init];
+            commentViewController.navigationController = self.navigationController;
+            commentViewController.hidesBottomBarWhenPushed = YES;
+            [self.navigationController pushViewController:commentViewController animated:YES];
+            
         }
     }
     
@@ -963,10 +1003,21 @@
             //  会员留言 不爽吐槽
             kata_FeedbackManageViewController *feedbackVC = [[kata_FeedbackManageViewController alloc] initWithNibName:nil bundle:nil];
             feedbackVC.navigationController = self.navigationController;
+            feedbackVC.hidesBottomBarWhenPushed = YES;
             [self.navigationController pushViewController:feedbackVC animated:YES];
         }
         if (row == 1) {
-            //  辣妈汇客服
+            
+            //联系客服------live 800
+            LMHContectServiceViewController *contect = [[LMHContectServiceViewController alloc]init];
+            contect.navigationController = self.navigationController;
+            self.hidesBottomBarWhenPushed = YES;
+            [self.navigationController pushViewController:contect animated:YES];
+        }
+        else if (row == 2){
+            
+            //  辣妈汇客服----电话热线
+            NSLog(@"%@",[[NSUserDefaults standardUserDefaults] objectForKey:@"service_phone"]);
             UIAlertView *hotLineAlertView =[[UIAlertView alloc]
                                             initWithTitle:@"客服热线"
                                             message:[[NSUserDefaults standardUserDefaults] objectForKey:@"service_phone"]
@@ -978,16 +1029,25 @@
             
             [tableView deselectRowAtIndexPath:indexPath animated:YES];
             
-//            LMHContectServiceViewController *contect = [[LMHContectServiceViewController alloc]init];
-//            contect.navigationController = self.navigationController;
-//            self.hidesBottomBarWhenPushed = YES;
-//            [self.navigationController pushViewController:contect animated:YES];
+            if ([[[UIDevice currentDevice] systemVersion] floatValue] >=8.0) {
+                UIView *effectView = [[UIView alloc] initWithFrame:self.view.bounds];
+                effectView.tag = 800;
+                effectView.backgroundColor = [UIColor clearColor];
+                [self.view addSubview:effectView];
+                
+                UIVisualEffectView *visualEffectView = [[UIVisualEffectView alloc] initWithEffect:[UIBlurEffect effectWithStyle:UIBlurEffectStyleLight]];
+                visualEffectView.alpha = 1.0;
+                visualEffectView.frame = effectView.bounds;
+                [effectView addSubview:visualEffectView];
+            }
+            
         }
     }else if (section == 3){
     
         [self settingsBtnPressed];
     }
 }
+
 
 - (CGFloat)tableView:(UITableView *)tableView heightForHeaderInSection:(NSInteger)section
 {
@@ -1018,7 +1078,8 @@
 - (void)alertView:(UIAlertView *)alertView clickedButtonAtIndex:(NSInteger)buttonIndex
 {
     NSInteger tag = alertView.tag;
-    
+    UIView *aview = [self.view viewWithTag:800];
+    [aview removeFromSuperview];
     if (tag == 100001) {
         if (buttonIndex == 0) {
             [[kata_UserManager sharedUserManager] logout];
@@ -1027,8 +1088,8 @@
         }
     } else if (tag == 100002) {
         if (buttonIndex == 1) {
-            NSURL *hotLineURL = [NSURL URLWithString:[NSString stringWithFormat:@"tel://%@", [[NSUserDefaults standardUserDefaults] objectForKey:@"service_phone"]]];
-            [[UIApplication sharedApplication] openURL:hotLineURL];
+            NSString *telStr = [NSString stringWithFormat:@"tel://%@", [[NSUserDefaults standardUserDefaults] objectForKey:@"service_phone"]];
+            [[UIApplication sharedApplication] openURL:[NSURL URLWithString:telStr]];
         }
     }
 }

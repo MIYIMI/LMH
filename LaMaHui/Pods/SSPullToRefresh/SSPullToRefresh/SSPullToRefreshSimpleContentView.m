@@ -7,13 +7,14 @@
 //
 
 #import "SSPullToRefreshSimpleContentView.h"
+#define ScreenW   [UIScreen mainScreen].bounds.size.width
 
 @implementation SSPullToRefreshSimpleContentView
 {
     UIImageView *updateView;
+    UIImageView *boultVIew;
 }
 @synthesize statusLabel = _statusLabel;
-@synthesize lastUpdatedAtLabel = _lastUpdatedAtLabel;
 @synthesize activityIndicatorView = _activityIndicatorView;
 
 
@@ -21,64 +22,67 @@
 
 - (id)initWithFrame:(CGRect)frame {
     if ((self = [super initWithFrame:frame])) {
-        CGFloat width = self.window.frame.size.width;
-        
-        _lastUpdatedAtLabel = [[UILabel alloc] initWithFrame:CGRectMake(0.0f, 9.0f, width, 20.0f)];
-        _lastUpdatedAtLabel.autoresizingMask = UIViewAutoresizingFlexibleWidth;
-        _lastUpdatedAtLabel.font = [UIFont systemFontOfSize:13.0f];
-        _lastUpdatedAtLabel.textColor = [UIColor lightGrayColor];
-        _lastUpdatedAtLabel.backgroundColor = [UIColor clearColor];
-        _lastUpdatedAtLabel.textAlignment = NSTextAlignmentCenter;
-        [self addSubview:_lastUpdatedAtLabel];
-        
-        _statusLabel = [[UILabel alloc] initWithFrame:CGRectMake(0.0f, 34.0f, width, 20.0f)];
-        _statusLabel.autoresizingMask = UIViewAutoresizingFlexibleWidth;
-        _statusLabel.font = [UIFont boldSystemFontOfSize:13.0f];
-        _statusLabel.textColor = [UIColor grayColor];
+//        CGFloat width = self.window.frame.size.width;
+        _statusLabel = [[UILabel alloc] initWithFrame:CGRectMake(ScreenW/2 - 65, 34.0f, 150, 20.0f)];
+//        _statusLabel.autoresizingMask = UIViewAutoresizingFlexibleWidth;
+        _statusLabel.font = [UIFont boldSystemFontOfSize:15.0f];
+        _statusLabel.textColor = [UIColor colorWithRed:255/255.0 green:74/255.0 blue:166/255.0 alpha:1];
         _statusLabel.backgroundColor = [UIColor clearColor];
         _statusLabel.textAlignment = NSTextAlignmentCenter;
         [self addSubview:_statusLabel];
         
-//        UIImageView *updateView = [[UIImageView alloc] initWithFrame:CGRectMake((width - 120)/2, CGRectGetMinY(_lastUpdatedAtLabel.frame) - 100, 120, 90)];
-        updateView = [[UIImageView alloc] initWithFrame:CGRectMake(((CGFloat)[UIScreen mainScreen].applicationFrame.size.width-120)/2, CGRectGetMinY(_lastUpdatedAtLabel.frame) - 100, 120, 90)];
-        updateView.image = [UIImage imageNamed:@"pulldown"];
+        updateView = [[UIImageView alloc] initWithFrame:CGRectMake(0, -55, ScreenW, ScreenW/360*86)];
+        updateView.image = [UIImage imageNamed:@"down_redraw"];
         [self addSubview:updateView];
         
+        boultVIew = [[UIImageView alloc] initWithFrame:CGRectMake(CGRectGetMinX(_statusLabel.frame)-20, 35.0f, 20.0f, 20.0f)];
+        [self addSubview:boultVIew];
+        boultVIew.image = [UIImage imageNamed:@"boult_down"];
+
+        
         _activityIndicatorView = [[UIActivityIndicatorView alloc] initWithActivityIndicatorStyle:UIActivityIndicatorViewStyleGray];
-        _activityIndicatorView.frame = CGRectMake(30.0f, 25.0f, 20.0f, 20.0f);
+        _activityIndicatorView.frame = CGRectMake(CGRectGetMinX(_statusLabel.frame)-20, 35.0f, 20.0f, 20.0f);
         [self addSubview:_activityIndicatorView];
     }
     return self;
 }
-
-
-//- (void)layoutSubviews {
-//	CGSize size = self.bounds.size;
-//	self.statusLabel.frame = CGRectMake(20.0f, roundf((size.height - 30.0f) / 2.0f), size.width - 40.0f, 30.0f);
-//	self.activityIndicatorView.frame = CGRectMake(roundf((size.width - 20.0f) / 2.0f), roundf((size.height - 20.0f) / 2.0f), 20.0f, 20.0f);
-//}
-
 
 #pragma mark - SSPullToRefreshContentView
 
 - (void)setState:(SSPullToRefreshViewState)state withPullToRefreshView:(SSPullToRefreshView *)view {
     switch (state) {
         case SSPullToRefreshViewStateReady: {
-            self.statusLabel.text = @"↑ 松开立即刷新";// NSLocalizedString(@"Release to refresh…", nil);
+            self.statusLabel.text = @"专注高性价比母婴特卖";// 上NSLocalizedString(@"Release to refresh…", nil);
             [self.activityIndicatorView stopAnimating];
+            
+            [UIView beginAnimations:@"clockwiseAnimation" context:NULL];
+            [UIView setAnimationDuration:0.5f];
+            [UIView setAnimationDelegate:self];
+            boultVIew.transform = CGAffineTransformMakeRotation((180.0f * M_PI) / 180.0f);
+            [UIView commitAnimations];
+//            boultVIew.image = [UIImage imageNamed:@"boult_up"];
             break;
         }
             
         case SSPullToRefreshViewStateNormal: {
-            self.statusLabel.text = @"↓ 下拉更新";// NSLocalizedString(@"Pull down to refresh…", nil);
+            self.statusLabel.text = @"专注高性价比母婴特卖";// 下NSLocalizedString(@"Pull down to refresh…", nil);
             [self.activityIndicatorView stopAnimating];
+            
+            [UIView beginAnimations:@"counterclockwiseAnimation"context:NULL];
+            [UIView setAnimationDuration:0.5f];
+            /* 回到原始旋转 */
+            boultVIew.transform = CGAffineTransformIdentity;
+            [UIView commitAnimations];
+            
+            boultVIew.image = [UIImage imageNamed:@"boult_down"];
             break;
         }
             
         case SSPullToRefreshViewStateLoading:
         case SSPullToRefreshViewStateClosing: {
-            self.statusLabel.text = @"加载中...";//NSLocalizedString(@"Loading…", nil);
+            self.statusLabel.text = @"专注高性价比母婴特卖";//NSLocalizedString(@"Loading…", nil);
             [self.activityIndicatorView startAnimating];
+            boultVIew.image = nil;
             break;
         }
     }
@@ -94,7 +98,7 @@
         dateFormatter.timeStyle = NSDateFormatterShortStyle;
     });
     
-    self.lastUpdatedAtLabel.text = @"更懂辣妈的特卖网站";
+//    self.lastUpdatedAtLabel.text = @"更懂辣妈的特卖网站";
     //self.lastUpdatedAtLabel.text = [NSString stringWithFormat:NSLocalizedString(@"Last Updated: %@", nil), [dateFormatter stringForObjectValue:date]];
 }
 

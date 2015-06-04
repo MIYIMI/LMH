@@ -12,7 +12,6 @@
 #import "KTVerificationCodeCheckRequest.h"
 #import "kata_UserManager.h"
 #import "KTProxy.h"
-#import "kata_WalletPwdViewController.h"
 
 @interface kata_FindBackPwdViewController ()
 {
@@ -484,15 +483,15 @@
 - (void)checkSuccess
 {
     [_comfirmBtn setEnabled:NO];
-    [self performSelector:@selector(pushToPwdVC) withObject:nil afterDelay:0.1];
+//    [self performSelector:@selector(pushToPwdVC) withObject:nil afterDelay:0.1];
 }
 
 - (void)pushToPwdVC
 {
-    kata_WalletPwdViewController *pwdVC = [[kata_WalletPwdViewController alloc] initWithCheckCode:_checkTF.text andUserName:_usernameTF.text];
-    pwdVC.navigationController = self.navigationController;
-    pwdVC.navigationController.ifPopToRootView = YES;
-    [self.navigationController pushViewController:pwdVC animated:YES];
+//    kata_WalletPwdViewController *pwdVC = [[kata_WalletPwdViewController alloc] initWithCheckCode:_checkTF.text andUserName:_usernameTF.text];
+//    pwdVC.navigationController = self.navigationController;
+//    pwdVC.navigationController.ifPopToRootView = YES;
+//    [self.navigationController pushViewController:pwdVC animated:YES];
 }
 
 #pragma mark - UITextField Delegate

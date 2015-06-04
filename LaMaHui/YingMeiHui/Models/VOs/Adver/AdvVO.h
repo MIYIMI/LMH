@@ -32,5 +32,6 @@
 @property(nonatomic, retain) NSString *platform;
 @property(nonatomic, retain) NSString *aname;
 @property(nonatomic, retain) NSNumber *Pid;
+@property(nonatomic, retain) NSString *flag;
 
 @end

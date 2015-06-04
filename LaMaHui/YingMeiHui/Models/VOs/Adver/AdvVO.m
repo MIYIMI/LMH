@@ -16,6 +16,7 @@
 @synthesize Pic;
 @synthesize platform;
 @synthesize Pid;
+@synthesize flag;
 
 + (AdvVO *)AdvVOWithJSONString:(NSString *)jsonString usingEncoding:(NSStringEncoding)stringEncoding error:(NSError **)error
 {
@@ -85,8 +86,13 @@
         if (nil != [dictionary objectForKey:@"aname"] && ![[dictionary objectForKey:@"aname"] isEqual:[NSNull null]]) {
             self.aname = [dictionary objectForKey:@"aname"];
         }
+        
         if (nil != [dictionary objectForKey:@"pid"] && ![[dictionary objectForKey:@"pid"] isEqual:[NSNull null]]) {
             self.Pid = [dictionary objectForKey:@"pid"];
+        }
+        
+        if (nil != [dictionary objectForKey:@"flag"] && ![[dictionary objectForKey:@"flag"] isEqual:[NSNull null]]) {
+            self.flag = [dictionary objectForKey:@"flag"];
         }
     }
     

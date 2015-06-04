@@ -102,20 +102,20 @@
         [loading.layer setCornerRadius:10.0];
         [self.view addSubview:loading];
     }
+    
+    //将加载动画放置最上层
+    for (int i = 0; i < self.view.subviews.count; i++) {
+        UIView *uview =  self.view.subviews[i];
+        if (uview == loading) {
+            [self.view exchangeSubviewAtIndex:self.view.subviews.count-1 withSubviewAtIndex:i];
+            break;
+        }
+    }
+    
     [loading start];
-//    if (!stateHud) {
-//        stateHud = [[MBProgressHUD alloc] initWithView:self.view];
-//        stateHud.delegate = self;
-//        [self.view addSubview:stateHud];
-//    }
-//    stateHud.mode = MBProgressHUDModeIndeterminate;
-//    [stateHud show:YES];
 }
 
 - (void)hideHUD{
-//    if (stateHud) {
-//        [stateHud hide:YES afterDelay:0];
-//    }
     if (loading) {
         [loading stop];
     }

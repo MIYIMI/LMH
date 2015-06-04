@@ -12,12 +12,11 @@
 
 @implementation HomeSeckillCell
 {
-    NSMutableArray *timeLblArray;
-    
     //倒计时
     NSTimer *backTimer;
     NSTimeInterval startTime;
     NSTimeInterval curTime;
+    NSMutableArray *timeLblArray;
     
     HomeVO *_skillVO;
     UIImageView *proImgView;
@@ -88,7 +87,7 @@
         cellView.userInteractionEnabled = YES;
         
         //限量秒杀
-        UIView *unitView = [[UIView alloc] initWithFrame:CGRectMake(0, 0, ScreenW*252/640-1, cellHeight)];
+        UIView *unitView = [[UIView alloc] initWithFrame:CGRectMake(0, 0, ScreenW*252/640-0.5, cellHeight)];
         [unitView setBackgroundColor:[UIColor whiteColor]];
         
         UITapGestureRecognizer *tap0 = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(tapClick:)];
@@ -99,7 +98,6 @@
         [unitView addSubview:proImgView];
         
         [cellView addSubview:unitView];
-        
         
         //倒计时
         UILabel *limiteLabel = [[UILabel alloc]initWithFrame:CGRectMake(10, 4, 70, 20)];
@@ -133,14 +131,13 @@
                 xoffset += CGRectGetWidth(pointLbl.frame)+0.5;
             }
         }
-
         
-        
-        //品牌团
-        UIView *actView1 = [[UIView alloc] initWithFrame:CGRectMake(ScreenW*252/640 ,0 ,(ScreenW-ScreenW*252/640)/2,cellHeight/2)];
+        //右边第一模块
+        UIView *actView1 = [[UIView alloc] initWithFrame:CGRectMake(ScreenW*252/640 ,0 ,ScreenW-ScreenW*252/640,cellHeight/2)];
         UIImageView *actImgView1 = [[UIImageView alloc] initWithFrame:actView1.frame];
+        actImgView1.backgroundColor = [UIColor whiteColor];
         if (seckillVO.activity.count >= 1) {
-            [actImgView1 sd_setImageWithURL:[NSURL URLWithString:[[seckillVO.activity objectAtIndex:0] Pic]] placeholderImage:[UIImage imageNamed:@"place_3"]];
+            [actImgView1 sd_setImageWithURL:[NSURL URLWithString:[[seckillVO.activity objectAtIndex:0] Pic]] placeholderImage:nil];
         }
         [otherImgArray addObject:actImgView1];
         UITapGestureRecognizer *tap1 = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(tapClick:)];
@@ -149,11 +146,12 @@
         [cellView addSubview:actImgView1];
         [cellView addSubview:actView1];
         
-        //签到赚金豆
-        UIView *actView2 = [[UIView alloc] initWithFrame:CGRectMake((ScreenW-ScreenW*252/640)/2+ScreenW*252/640+1, 0,(ScreenW-ScreenW*252/640)/2, cellHeight/2)];
+        //右边第二模块
+        UIView *actView2 = [[UIView alloc] initWithFrame:CGRectMake(ScreenW*252/640, cellHeight/2+0.5,ScreenW-ScreenW*252/640, cellHeight/2-1)];
         UIImageView *actImgView2 = [[UIImageView alloc] initWithFrame:actView2.frame];
+        actImgView2.backgroundColor = [UIColor whiteColor];
         if (seckillVO.activity.count >= 2) {
-            [actImgView2 sd_setImageWithURL:[NSURL URLWithString:[[seckillVO.activity objectAtIndex:1] Pic]] placeholderImage:[UIImage imageNamed:@"place_3"]];
+            [actImgView2 sd_setImageWithURL:[NSURL URLWithString:[[seckillVO.activity objectAtIndex:1] Pic]] placeholderImage:nil];
         }
         [otherImgArray addObject:actImgView2];
         UITapGestureRecognizer *tap2 = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(tapClick:)];
@@ -162,46 +160,20 @@
         [cellView addSubview:actView2];
         [cellView addSubview:actImgView2];
         
-        //红包裂变
-        UIView *actView3 = [[UIView alloc] initWithFrame:CGRectMake(ScreenW*252/640, cellHeight/2+1,(ScreenW-ScreenW*252/640)/2, cellHeight/2-1)];
-        UIImageView *actImgView3 = [[UIImageView alloc] initWithFrame:actView3.frame];
-        if (seckillVO.activity.count >= 3) {
-            [actImgView3 sd_setImageWithURL:[NSURL URLWithString:[[seckillVO.activity objectAtIndex:2] Pic]] placeholderImage:[UIImage imageNamed:@"place_3"]];
-        }
-        [otherImgArray addObject:actImgView3];
-        UITapGestureRecognizer *tap3 = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(tapClick:)];
-        actView3.tag = 1003;
-        [actView3 addGestureRecognizer:tap3];
-        [cellView addSubview:actView3];
-        [cellView addSubview:actImgView3];
-        
-        //九块九包邮
-        UIView *actView4 = [[UIView alloc] initWithFrame:CGRectMake((ScreenW-ScreenW*252/640)/2+ScreenW*252/640+1, cellHeight/2+1,(ScreenW-ScreenW*252/640)/2, cellHeight/2-1)];
-        UIImageView *actImgView4 = [[UIImageView alloc] initWithFrame:actView4.frame];
-        if (seckillVO.activity.count >= 4) {
-            [actImgView4 sd_setImageWithURL:[NSURL URLWithString:[[seckillVO.activity objectAtIndex:3] Pic]] placeholderImage:[UIImage imageNamed:@"place_3"]];
-        }
-        [otherImgArray addObject:actImgView4];
-        UITapGestureRecognizer *tap4 = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(tapClick:)];
-        actView4.tag = 1004;
-        [actView4 addGestureRecognizer:tap4];
-        [cellView addSubview:actView4];
-        [cellView addSubview:actImgView4];
-        
-        
         [self addSubview:cellView];
     }
     
-    for (int i = 0; i < seckillVO.activity.count; i++) {
+    for (int i = 0; i < 2; i++) { //seckillVO.activity.count
         UIImageView *imgV = otherImgArray[i];
-        [imgV sd_setImageWithURL:[NSURL URLWithString:[[seckillVO.activity objectAtIndex:i] Pic]] placeholderImage:[UIImage imageNamed:@"place_3"]];
+        imgV.backgroundColor = [UIColor whiteColor];
+        [imgV sd_setImageWithURL:[NSURL URLWithString:[[seckillVO.activity objectAtIndex:i] Pic]] placeholderImage:nil];
     }
     
     //判断秒杀数量 是否大于0
     if (seckillVO.seckill_list.count > 0) {
         LimitedSeckillVO *vo = seckillVO.seckill_list[0];
         NSURL *imgurl = [NSURL URLWithString:[vo pic]];
-        [proImgView sd_setImageWithURL:imgurl placeholderImage:LOCAL_IMG(@"place_2")];
+        [proImgView sd_setImageWithURL:imgurl placeholderImage:nil];
     }
 }
 

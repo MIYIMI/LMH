@@ -83,7 +83,7 @@
                     [[(kata_TableListTabBarItem *)[self viewWithTag:itemTag] imageView] setTransform:CGAffineTransformMakeRotation(0)];
                 } else {
                     [tempDict setObject:@"sort" forKey:@"status"];
-                    [[(kata_TableListTabBarItem *)[self viewWithTag:itemTag] imageView] setTransform:CGAffineTransformMakeScale(1.0,-1.0)];
+                    [[(kata_TableListTabBarItem *)[self viewWithTag:itemTag] imageView] setTransform:CGAffineTransformMakeScale(-1.0,-1.0)];
                 }
             }
             

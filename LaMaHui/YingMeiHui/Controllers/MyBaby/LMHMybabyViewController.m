@@ -74,7 +74,7 @@
         UIButton * addBtn = [UIButton buttonWithType:UIButtonTypeRoundedRect];
         [addBtn setFrame:CGRectMake(0, 0, 50, 30)];
         [addBtn setTitle:@"编辑" forState:UIControlStateNormal];
-        [addBtn setTitleColor:[UIColor whiteColor] forState:UIControlStateNormal];
+        [addBtn setTitleColor: LMH_COLOR_GRAY forState:UIControlStateNormal];
         [addBtn.titleLabel setFont:FONT(15.0)];
         [addBtn addTarget:self action:@selector(RightBtnPressed) forControlEvents:UIControlEventTouchUpInside];
         UIBarButtonItem * addItem = [[UIBarButtonItem alloc] initWithCustomView:addBtn];

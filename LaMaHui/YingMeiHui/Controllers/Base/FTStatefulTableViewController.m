@@ -43,6 +43,7 @@ static const NSInteger kLoadingCellTag = 257;
 @end
 
 @implementation FTStatefulTableViewController
+
 - (id) initWithStyle:(UITableViewStyle)style
 {
     self = [super initWithNibName:nil bundle:nil];
@@ -83,6 +84,7 @@ static const NSInteger kLoadingCellTag = 257;
     
     if (_ifAddPullToRefreshControl) {
         _pullToRefreshView = [[SSPullToRefreshView alloc] initWithScrollView:_tableView delegate:self];
+        _pullToRefreshView.backgroundColor = [UIColor clearColor];
     }
     
     if (_ifShowScrollToTopBtn) {
@@ -153,11 +155,6 @@ static const NSInteger kLoadingCellTag = 257;
         } else {
             [labelImage setFrame:CGRectMake(CGRectGetWidth(self.contentView.frame) - 53, CGRectGetHeight(self.contentView.frame) - 131, 34, 76)];
         }
-//        labelImage.backgroundColor     = [UIColor colorWithRed:239/255.0 green:80/255.0 blue:108/255.0 alpha:0.85];
-//        labelImage.layer.masksToBounds = YES;
-//        labelImage.layer.cornerRadius  = 17.0;
-//        [self.view addSubview:labelImage];
-//        [labelImage setHidden:YES];
     }
     if (!_scrollToTopBtn) {
         _scrollToTopBtn = [UIButton buttonWithType:UIButtonTypeCustom];
@@ -247,23 +244,6 @@ static const NSInteger kLoadingCellTag = 257;
 - (UIView *)idleView
 {
     return nil;
-}
-
-- (UIView *)loadingView
-{
-
-    if (!_loadingView) {
-        _loadingView = [[UIView alloc] initWithFrame:self.tableView.bounds];
-        [_tableView setAutoresizingMask:UIViewAutoresizingFlexibleHeight];
-//        [_loadingView setBackgroundColor:[UIColor colorWithRed:0.97f green:0.97f blue:0.97f alpha:1.00f]];
-        loading = [[Loading alloc]initWithFrame:CGRectMake(0, 0, 180, 100) andName:[NSString stringWithFormat:@"loading.gif"]];
-//        [loading setBackgroundColor:[UIColor colorWithRed:1 green:1 blue:1 alpha:0.7]];
-        loading.center = _loadingView.center;
-        [loading start];
-        [_loadingView addSubview:loading];
-    }
-    
-    return _loadingView;
 }
 
 - (UIView *)emptyView
@@ -369,7 +349,7 @@ static const NSInteger kLoadingCellTag = 257;
         return;
     }
     
-//    [self.listData removeAllObjects];
+    [self.listData removeAllObjects];
     _current = 1;
     _max = -1;
     self.statefulState = FTStatefulTableViewControllerStateInitialLoading;
@@ -390,18 +370,15 @@ static const NSInteger kLoadingCellTag = 257;
     KTBaseRequest * req = [self request];
     
     table_proxy = [KTProxy loadWithRequest:req completed:^(NSString *resp, NSStringEncoding encoding) {
-        
         NSArray * items = [self parseResponse:resp];
         
+        [self.listData removeAllObjects];
+        
         if (items && [items count]){
-            
             dispatch_async(dispatch_get_main_queue(), ^{
-                if (_listData && _listData.count > 0) {
-                    [_listData removeAllObjects];
-                }
+                
                 [_listData addObjectsFromArray:items];
                 [self.tableView reloadData];
-                
             });
             
             self.statefulState = FTStatefulTableViewControllerStateIdle;
@@ -418,7 +395,10 @@ static const NSInteger kLoadingCellTag = 257;
             }
             });
         }
+        
+        [self hideHUD];
     } failed:^(NSError *error) {
+        [self hideHUD];
         NSArray * items = [self parseResponse:nil];
         
         if (items && [items count]){
@@ -464,7 +444,7 @@ static const NSInteger kLoadingCellTag = 257;
         table_proxy = [KTProxy loadWithRequest:req completed:^(NSString *resp, NSStringEncoding encoding) {
             
             NSArray * items = [self parseResponse:resp];
-            
+            [self hideHUD];
             if (items && [items count]){
                 
                 dispatch_async(dispatch_get_main_queue(), ^{
@@ -478,7 +458,7 @@ static const NSInteger kLoadingCellTag = 257;
             }
             self.statefulState = FTStatefulTableViewControllerStateIdle;
         } failed:^(NSError *error) {
-//            NSLog(@"%@:::%@:::加载数据失败", NSStringFromClass([self class]), NSStringFromSelector(_cmd));
+            [self hideHUD];
             self.statefulState = FTStatefulTableViewControllerStateIdle;
         }];
         
@@ -489,7 +469,7 @@ static const NSInteger kLoadingCellTag = 257;
 
 - (void)loadFromPullToRefresh
 {
-    if  (self.statefulState == FTStatefulTableViewControllerStateLoadingFromPullToRefresh) return;
+    if (self.statefulState == FTStatefulTableViewControllerStateInitialLoading) return;
     
     self.statefulState = FTStatefulTableViewControllerStateLoadingFromPullToRefresh;
     
@@ -499,15 +479,11 @@ static const NSInteger kLoadingCellTag = 257;
     table_proxy = [KTProxy loadWithRequest:req completed:^(NSString *resp, NSStringEncoding encoding) {
         
         NSArray * items = [self parseResponse:resp];
+        [_listData removeAllObjects];
         
         if (items && [items count]){
             
             dispatch_async(dispatch_get_main_queue(), ^{
-                
-                if (_listData && [_listData count]) {
-                    [_listData removeAllObjects];
-                }
-                
                 [_listData addObjectsFromArray:items];
                 
                 [self.tableView reloadData];
@@ -515,9 +491,10 @@ static const NSInteger kLoadingCellTag = 257;
             
             self.statefulState = FTStatefulTableViewControllerStateIdle;
         }else{
-            self.statefulState = FTStatefulTableViewControllerStateIdle;
+            [self.tableView reloadData];
+            self.statefulState = FTStatefulTableViewControllerStateEmpty;
         }
-        
+        [self hideHUD];
         [_pullToRefreshView performSelectorOnMainThread:@selector(finishLoading) withObject:nil waitUntilDone:YES];
         
     } failed:^(NSError *error) {
@@ -527,7 +504,7 @@ static const NSInteger kLoadingCellTag = 257;
         }else{
             self.statefulState = FTStatefulTableViewControllerError;
         }
-        
+        [self hideHUD];
         [_pullToRefreshView performSelectorOnMainThread:@selector(finishLoading) withObject:nil waitUntilDone:YES];
     }];
     
@@ -580,45 +557,33 @@ static const NSInteger kLoadingCellTag = 257;
                     [self.tableView setSeparatorStyle:UITableViewCellSeparatorStyleNone];
                 }
                 [self.tableView setScrollEnabled:YES];
-//                [self.tableView.tableHeaderView setHidden:YES];
-                [self.tableView.tableFooterView setHidden:YES];
                 [self.tableView reloadData];
-                if (stateHud) {
-                    [self hideHUDView];
-                    if (self.ifScrollToTop) {
-                        [self.tableView setContentOffset:CGPointMake(0, 0) animated:YES];
-                    }
-                }
+                [self hideHUD];
                 break;
             case FTStatefulTableViewControllerStateInitialLoading:
-                [self.tableView setBackgroundView:self.loadingView];
+                [self.tableView setScrollEnabled:YES];
+                if (!_is_home) {
+                    [self loadHUD];
+                    [self.tableView setScrollEnabled:NO];
+                }
                 [self.tableView setSeparatorStyle:UITableViewCellSeparatorStyleNone];
-                [self.tableView setScrollEnabled:NO];
-//                [self.tableView.tableHeaderView setHidden:YES];
-                [self.tableView.tableFooterView setHidden:YES];
                 [self.tableView reloadData];
                 break;
             case FTStatefulTableViewControllerStateEmpty:
-                [self.tableView setBackgroundView:self.emptyView];
-                [self.tableView setSeparatorStyle:UITableViewCellSeparatorStyleNone];
-                [self.tableView setScrollEnabled:NO];
-//                [self.tableView.tableHeaderView setHidden:YES];
-                [self.tableView.tableFooterView setHidden:YES];
-                [self.tableView reloadData];
-                if (stateHud) {
-                    [self hideHUDView];
+                [self hideHUD];
+                if (!_is_home) {
+                    [self.tableView setBackgroundView:self.emptyView];
                 }
+                [self.tableView setSeparatorStyle:UITableViewCellSeparatorStyleNone];
+                [self.tableView setScrollEnabled:YES];
+                [self.tableView reloadData];
                 break;
             case FTStatefulTableViewControllerError:
+                [self loadHUD];
                 [self.tableView setBackgroundView:self.errorView];
                 [self.tableView setSeparatorStyle:UITableViewCellSeparatorStyleNone];
                 [self.tableView setScrollEnabled:NO];
-//                [self.tableView.tableHeaderView setHidden:YES];
-                [self.tableView.tableFooterView setHidden:YES];
                 [self.tableView reloadData];
-                if (stateHud) {
-                    [self hideHUDView];
-                }
                 break;
             case FTStatefulTableViewControllerStateLoadingNextPage:
                 break;
@@ -735,20 +700,6 @@ static const NSInteger kLoadingCellTag = 257;
     [self.navigationController pushViewController:lmhVC animated:YES];
 }
 
-//- (void)scrollViewDidEndDragging:(UIScrollView *)scrollView willDecelerate:(BOOL)decelerate
-//{
-//    if (!decelerate){
-//        [self scrollViewDidEndDecelerating:scrollView];
-//    }
-//}
-
-//- (void)scrollViewDidEndDecelerating:(UIScrollView *)scrollView
-//{
-//    if ((self.tableView.contentOffset.y + CGRectGetHeight(self.tableView.frame)) + 10 >= self.tableView.contentSize.height && self.statefulState == FTStatefulTableViewControllerStateIdle && [self canLoadMore]) {
-//        [self performSelectorInBackground:@selector(loadNextPage) withObject:nil];
-//    }
-//}
-
 - (void)scrollViewDidScroll:(UIScrollView *)scrollView
 {
     if (self.tableView.contentOffset.y > 500) {
@@ -760,7 +711,7 @@ static const NSInteger kLoadingCellTag = 257;
         [_layoutBtn setHidden:YES];
         [labelImage setHidden:YES];
     }
-//    NSLog(@"y = %f , yyy = %f h = %f",self.tableView.contentOffset.y, self.tableView.contentSize.height,CGRectGetHeight(self.tableView.frame));
+    
     if ((self.tableView.contentOffset.y + 5*CGRectGetHeight(self.tableView.frame)) >= self.tableView.contentSize.height && self.statefulState == FTStatefulTableViewControllerStateIdle && [self canLoadMore]) {
         [self performSelectorInBackground:@selector(loadNextPage) withObject:nil];
     }
@@ -779,6 +730,12 @@ static const NSInteger kLoadingCellTag = 257;
         UIImage *image = [UIImage imageNamed:@"icon_SmallShow"];
         [_layoutBtn setImage:image forState:UIControlStateNormal];
     }
+}
+
+- (void)dealloc
+{
+    self.tableView.delegate = nil;
+    self.tableView.dataSource = nil;
 }
 
 @end

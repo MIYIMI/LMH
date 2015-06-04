@@ -251,7 +251,7 @@
         
         if (_LikeData.imageUrl) {
             NSString * imgUrlStr = [_LikeData imageUrl];
-            [__likeProductImgView sd_setImageWithURL:[NSURL URLWithString:imgUrlStr] placeholderImage:[UIImage imageNamed:@"productph"]];
+            [__likeProductImgView sd_setImageWithURL:[NSURL URLWithString:imgUrlStr] placeholderImage:nil];
         }
         
         if (!__ourPriceLbl) {

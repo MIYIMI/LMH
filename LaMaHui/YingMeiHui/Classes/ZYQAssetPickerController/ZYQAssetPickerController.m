@@ -587,7 +587,7 @@ static UIColor *titleColor;
     BOOL selectable = [vc.selectionFilter evaluateWithObject:asset];
     if (self.indexPathsForSelectedItems.count > vc.maximumNumberOfSelection) {
         if (vc.delegate!=nil&&[vc.delegate respondsToSelector:@selector(assetPickerControllerDidMaximum:)]) {
-            [vc.delegate assetPickerControllerDidMaximum:vc];
+            [vc.zyDelegate assetPickerControllerDidMaximum:vc];
         }
     }
     
@@ -601,8 +601,8 @@ static UIColor *titleColor;
     ZYQAssetPickerController *vc = (ZYQAssetPickerController *)self.navigationController;
     vc.indexPathsForSelectedItems = self.indexPathsForSelectedItems;
     
-    if (vc.delegate!=nil&&[vc.delegate respondsToSelector:@selector(assetPickerController:didSelectAsset:)])
-        [vc.delegate assetPickerController:vc didSelectAsset:asset];
+    if (vc.zyDelegate!=nil&&[vc.zyDelegate respondsToSelector:@selector(assetPickerController:didSelectAsset:)])
+        [vc.zyDelegate assetPickerController:vc didSelectAsset:asset];
     
     [self setTitleWithSelectedIndexPaths:self.indexPathsForSelectedItems];
 }
@@ -614,8 +614,8 @@ static UIColor *titleColor;
     ZYQAssetPickerController *vc = (ZYQAssetPickerController *)self.navigationController;
     vc.indexPathsForSelectedItems = self.indexPathsForSelectedItems;
     
-    if (vc.delegate!=nil&&[vc.delegate respondsToSelector:@selector(assetPickerController:didDeselectAsset:)])
-        [vc.delegate assetPickerController:vc didDeselectAsset:asset];
+    if (vc.zyDelegate!=nil&&[vc.zyDelegate respondsToSelector:@selector(assetPickerController:didDeselectAsset:)])
+        [vc.zyDelegate assetPickerController:vc didDeselectAsset:asset];
     
     [self setTitleWithSelectedIndexPaths:self.indexPathsForSelectedItems];
 }
@@ -670,23 +670,20 @@ static UIColor *titleColor;
     self.navigationItem.titleView = titleLabel;
 }
 
-
 #pragma mark - Actions
-
 - (void)finishPickingAssets:(id)sender
 {
-    
     ZYQAssetPickerController *picker = (ZYQAssetPickerController *)self.navigationController;
     
     if (self.indexPathsForSelectedItems.count < picker.minimumNumberOfSelection) {
-        if (picker.delegate!=nil&&[picker.delegate respondsToSelector:@selector(assetPickerControllerDidMaximum:)]) {
-            [picker.delegate assetPickerControllerDidMaximum:picker];
+        if (picker.zyDelegate!=nil&&[picker.zyDelegate respondsToSelector:@selector(assetPickerControllerDidMaximum:)]) {
+            [picker.zyDelegate assetPickerControllerDidMaximum:picker];
         }
     }
     
 
-    if ([picker.delegate respondsToSelector:@selector(assetPickerController:didFinishPickingAssets:)])
-        [picker.delegate assetPickerController:picker didFinishPickingAssets:self.indexPathsForSelectedItems];
+    if ([picker.zyDelegate respondsToSelector:@selector(assetPickerController:didFinishPickingAssets:)])
+        [picker.zyDelegate assetPickerController:picker didFinishPickingAssets:self.indexPathsForSelectedItems];
     
     if (picker.isFinishDismissViewController) {
         [picker.presentingViewController dismissViewControllerAnimated:YES completion:NULL];
@@ -1045,8 +1042,8 @@ static UIColor *titleColor;
 {
     ZYQAssetPickerController *picker = (ZYQAssetPickerController *)self.navigationController;
     
-    if ([picker.delegate respondsToSelector:@selector(assetPickerControllerDidCancel:)])
-        [picker.delegate assetPickerControllerDidCancel:picker];
+    if ([picker.zyDelegate respondsToSelector:@selector(assetPickerControllerDidCancel:)])
+        [picker.zyDelegate assetPickerControllerDidCancel:picker];
     
     [picker.presentingViewController dismissViewControllerAnimated:YES completion:NULL];
 }

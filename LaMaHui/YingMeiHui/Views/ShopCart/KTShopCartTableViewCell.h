@@ -24,6 +24,7 @@
 @property (assign, nonatomic) BOOL selectState;
 @property (assign, nonatomic) BOOL editAble;
 @property (assign, nonatomic) BOOL outStore;
+@property (assign, nonatomic) NSInteger selectNum;
 
 - (id)initWithStyle:(UITableViewCellStyle)style reuseIdentifier:(NSString *)reuseIdentifier delegate:(id)delegate;
 - (void)setDataVO:(id)goodvo andSection:(NSInteger)section;
@@ -34,5 +35,6 @@
 - (void)selectCheckBoxAtCell:(id)cell andVO:(id)dataVO andCheck:(NSNumber *)checked andSection:(NSInteger)section;
 - (void)pressCountBtnAtCell:(NSNumber *)goodid andCount:(NSNumber *)count;
 - (void)pressDeleteAtCell:(CartProductVO *)goodvo;
+- (void)clickSizeAndColorBtn:(CartProductVO *)goodvo;
 
 @end

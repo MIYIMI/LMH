@@ -47,6 +47,7 @@
 @property(nonatomic, retain) NSString *order_id;
 @property(nonatomic, retain) NSNumber *pay_status;
 @property(nonatomic, retain) NSString *pay_status_name;
+@property(nonatomic, retain) NSString *goods_total;
 
 @end
 
@@ -88,5 +89,23 @@
 @property(nonatomic, retain) NSNumber *market_price;
 @property(nonatomic, retain) NSNumber *goods_id;
 @property(nonatomic, retain) NSNumber *quantity;
+@property(nonatomic, retain) NSString *pay_status_name;
+@property(nonatomic, retain) NSArray *orderBtn;
+@property(nonatomic, retain) NSString *order_id;
+
+@end
+
+
+//订单按钮属性
+@interface OrderButtonVO : NSObject
+
++ (OrderButtonVO *)OrderButtonVOWithDictionary:(NSDictionary *)dictionary;
++ (NSArray *)OrderButtonVOListWithArray:(NSArray *)array;
+
+- (id)initWithDictionary:(NSDictionary *)dictionary;
+
+@property(nonatomic, retain) NSString *btn_color;
+@property(nonatomic, retain) NSString *btn_name;
+@property(nonatomic, retain) NSNumber *btn_type;
 
 @end

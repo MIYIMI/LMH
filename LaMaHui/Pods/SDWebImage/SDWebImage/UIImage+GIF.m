@@ -52,8 +52,8 @@
     return animatedImage;
 }
 
-+ (CGFloat)sd_frameDurationAtIndex:(NSUInteger)index source:(CGImageSourceRef)source {
-    CGFloat frameDuration = 0.1f;
++ (float)sd_frameDurationAtIndex:(NSUInteger)index source:(CGImageSourceRef)source {
+    float frameDuration = 0.1f;
     CFDictionaryRef cfFrameProperties = CGImageSourceCopyPropertiesAtIndex(source, index, nil);
     NSDictionary *frameProperties = (__bridge NSDictionary *)cfFrameProperties;
     NSDictionary *gifProperties = frameProperties[(NSString *)kCGImagePropertyGIFDictionary];

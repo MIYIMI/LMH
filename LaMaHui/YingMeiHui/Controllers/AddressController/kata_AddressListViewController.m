@@ -92,7 +92,7 @@
         UIButton * addBtn = [UIButton buttonWithType:UIButtonTypeRoundedRect];
         [addBtn setFrame:CGRectMake(0, 0, 50, 28)];
         [addBtn setTitle:@"新增" forState:UIControlStateNormal];
-        [addBtn setTitleColor:[UIColor whiteColor] forState:UIControlStateNormal];
+        [addBtn setTitleColor:LMH_COLOR_GRAY forState:UIControlStateNormal];
         [addBtn.titleLabel setFont:[UIFont boldSystemFontOfSize:15.0]];
         [addBtn addTarget:self action:@selector(addBtnPressed) forControlEvents:UIControlEventTouchUpInside];
         UIBarButtonItem * addItem = [[UIBarButtonItem alloc] initWithCustomView:addBtn];

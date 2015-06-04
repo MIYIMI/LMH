@@ -8,6 +8,79 @@
 
 #import "MenuVO.h"
 
+
+@implementation StartVO
+@synthesize menus;
+@synthesize is_show;
+@synthesize tutorials;
+@synthesize user_uuid;
+@synthesize tutorials_big;
+@synthesize third_login_flag;
+@synthesize service_phone;
+@synthesize app_cache_secret;
+
++ (NSArray *)StartVOListWithArray:(NSArray *)array{
+    NSMutableArray *resultsArray = [[NSMutableArray alloc] init];
+    
+    for (id entry in array) {
+        if (![entry isKindOfClass:[NSDictionary class]]) {
+            continue;
+        }
+        
+        [resultsArray addObject:[StartVO StartVOWithDictionary:entry]];
+    }
+    
+    return JSONAutoRelease(resultsArray);
+}
+
++ (StartVO *)StartVOWithDictionary:(NSDictionary *)dictionary
+{
+    StartVO *instance = [[StartVO alloc] initWithDictionary:dictionary];
+    return JSONAutoRelease(instance);
+}
+
+
+- (id)initWithDictionary:(NSDictionary *)dictionary{
+    self = [super init];
+    if (self) {
+        if (nil != [dictionary objectForKey:@"menus"] && ![[dictionary objectForKey:@"menus"] isEqual:[NSNull null]] && [[dictionary objectForKey:@"menus"] isKindOfClass:[NSArray class]]) {
+            self.menus = [MenuVO MenuVOListWithArray:[dictionary objectForKey:@"menus"]];
+        }
+        
+        if (nil != [dictionary objectForKey:@"is_show"] && ![[dictionary objectForKey:@"is_show"] isEqual:[NSNull null]]) {
+            self.is_show = [dictionary objectForKey:@"is_show"];
+        }
+        
+        if (nil != [dictionary objectForKey:@"tutorials"] && ![[dictionary objectForKey:@"tutorials"] isEqual:[NSNull null]] && [[dictionary objectForKey:@"tutorials"] isKindOfClass:[NSArray class]]) {
+            self.tutorials = [dictionary objectForKey:@"tutorials"];
+        }
+        
+        if (nil != [dictionary objectForKey:@"user_uuid"] && ![[dictionary objectForKey:@"user_uuid"] isEqual:[NSNull null]]) {
+            self.user_uuid = [dictionary objectForKey:@"user_uuid"];
+        }
+        
+        if (nil != [dictionary objectForKey:@"tutorials_big"] && ![[dictionary objectForKey:@"tutorials_big"] isEqual:[NSNull null]] && [[dictionary objectForKey:@"tutorials_big"] isKindOfClass:[NSArray class]]) {
+            self.tutorials_big = [dictionary objectForKey:@"tutorials_big"];
+        }
+        
+        if (nil != [dictionary objectForKey:@"third_login_flag"] && ![[dictionary objectForKey:@"third_login_flag"] isEqual:[NSNull null]]) {
+            self.third_login_flag = [dictionary objectForKey:@"third_login_flag"];
+        }
+        
+        if (nil != [dictionary objectForKey:@"service_phone"] && ![[dictionary objectForKey:@"service_phone"] isEqual:[NSNull null]]) {
+            self.service_phone = [dictionary objectForKey:@"service_phone"];
+        }
+        
+        if (nil != [dictionary objectForKey:@"app_cache_secret"] && ![[dictionary objectForKey:@"app_cache_secret"] isEqual:[NSNull null]]) {
+            self.app_cache_secret = [dictionary objectForKey:@"tutorials_big"];
+        }
+    }
+    
+    return self;
+}
+
+@end
+
 @implementation MenuVO
 
 @synthesize MID;

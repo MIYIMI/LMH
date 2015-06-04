@@ -65,9 +65,9 @@
         [headLbl setBackgroundColor:[UIColor whiteColor]];
         [headView addSubview:headLbl];
         
-        UILabel *lineLbl = [[UILabel alloc] initWithFrame:CGRectMake(0, CGRectGetMaxY(headLbl.frame), CGRectGetWidth(headLbl.frame), 1)];
-        [lineLbl setBackgroundColor:[UIColor colorWithPatternImage:[UIImage imageNamed:@"line"]]];
-        [headView addSubview:lineLbl];
+        UIImageView *lineImg = [[UIImageView alloc] initWithFrame:CGRectMake(0, CGRectGetMaxY(headLbl.frame), CGRectGetWidth(headLbl.frame), 1)];
+        [lineImg setImage:[UIImage imageNamed:@"line"]];
+        [headView addSubview:lineImg];
         
         UIButton *cancelBtn = [[UIButton alloc] initWithFrame:CGRectMake(CGRectGetWidth(headLbl.frame)-20, -3, 22, 22)];
         cancelBtn.layer.cornerRadius = 22/2;
@@ -172,9 +172,10 @@
             [_checkBtn addTarget:self action:@selector(btnSelect:) forControlEvents:UIControlEventTouchUpInside];
             [cell addSubview:_checkBtn];
             
-            UILabel *lineLbl = [[UILabel alloc] initWithFrame:CGRectMake(15, 79, (CGRectGetWidth(coupon_table.frame) - 30), 1)];
-            [lineLbl setBackgroundColor:[UIColor colorWithPatternImage:[UIImage imageNamed:@"line"]]];
-            [cell addSubview:lineLbl];
+            UIImageView *lineImg = [[UIImageView alloc] initWithFrame:CGRectMake(15, 79, (CGRectGetWidth(coupon_table.frame) - 30), 1)];
+            [lineImg setImage:[UIImage imageNamed:@"line"]];
+
+            [cell addSubview:lineImg];
         }
         [cell setSelectionStyle:UITableViewCellSelectionStyleNone];
         
@@ -186,9 +187,9 @@
             cell.textLabel.font = [UIFont systemFontOfSize:15];
             cell.textLabel.textAlignment = NSTextAlignmentLeft;
             
-            UILabel *lineLbl = [[UILabel alloc] initWithFrame:CGRectMake(15, 39, (CGRectGetWidth(coupon_table.frame) - 30), 1)];
-            [lineLbl setBackgroundColor:[UIColor colorWithPatternImage:[UIImage imageNamed:@"line"]]];
-            [cell addSubview:lineLbl];
+            UIImageView *lineImg = [[UIImageView alloc] initWithFrame:CGRectMake(15, 39, (CGRectGetWidth(coupon_table.frame) - 30), 1)];
+            [lineImg setImage:[UIImage imageNamed:@"line"]];
+            [cell addSubview:lineImg];
             
             UIButton *selectBtn = [[UIButton alloc] initWithFrame:CGRectMake(CGRectGetWidth(self.frame) - 40, 9, 22, 22)];
             [selectBtn setBackgroundImage:[UIImage imageNamed:@"noselect"] forState:UIControlStateNormal];

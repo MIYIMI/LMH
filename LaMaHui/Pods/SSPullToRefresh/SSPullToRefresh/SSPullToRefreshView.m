@@ -174,13 +174,11 @@
 
 		// Add to scroll view
 		[self.scrollView addSubview:self];
+        self.scrollView.backgroundColor = [UIColor clearColor];
 
 		// Semaphore is used to ensure only one animation plays at a time
 		_animationSemaphore = dispatch_semaphore_create(0);
 		dispatch_semaphore_signal(_animationSemaphore);
-
-        // Set layer position below other scrollView subviews
-        self.layer.zPosition = -100;
 	}
 	return self;
 }
@@ -371,6 +369,9 @@
 	if (self.scrollView.isDragging) {
 		// Scroll view is ready
 		if (self.state == SSPullToRefreshViewStateReady) {
+			// Update the content view's pulling progressing
+			[self _setPullProgress:-y / self.expandedHeight];
+			
 			// Dragged enough to refresh
 			if (y > -self.expandedHeight && y < 0.0f) {
 				self.state = SSPullToRefreshViewStateNormal;

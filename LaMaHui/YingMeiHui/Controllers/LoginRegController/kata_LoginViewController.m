@@ -15,7 +15,6 @@
 #import "KTProxy.h"
 #import "KTNavigationController.h"
 #import "NSString+KTStringHelper.h"
-#import "kata_EmailFindBackPwdViewController.h"
 #import "kata_CartManager.h"
 #import "KTThirdLoginRequest.h"
 #import "UMSocial.h"
@@ -119,7 +118,6 @@
 - (void)viewDidAppear:(BOOL)animated
 {
     [super viewDidAppear:animated];
-    [[(kata_AppDelegate *)[[UIApplication sharedApplication] delegate] deckController] setPanningMode:IIViewDeckNoPanning];
 }
 
 - (void)viewWillDisappear:(BOOL)animated
@@ -136,7 +134,7 @@
         [cancelBtn setFrame:CGRectMake(0, 0, 25, 29)];
         [cancelBtn setTitleColor:[UIColor blackColor] forState:UIControlStateNormal];
         [cancelBtn.titleLabel setFont:[UIFont boldSystemFontOfSize:13.0]];
-        UIImage *image = [UIImage imageNamed:@"return"];
+        UIImage *image = [UIImage imageNamed:@"icon_goback_gray"];
         [cancelBtn setImage:image forState:UIControlStateNormal];
         [cancelBtn addTarget:self action:@selector(cancelBtnPressed) forControlEvents:UIControlEventTouchUpInside];
         UIBarButtonItem * cancelItem = [[UIBarButtonItem alloc] initWithCustomView:cancelBtn];
@@ -149,7 +147,7 @@
         registerBtn.backgroundColor = [UIColor clearColor];
         [registerBtn setFrame:CGRectMake(0, 0, 50, 30)];
         [registerBtn setTitle:@"注册" forState:UIControlStateNormal];
-        [registerBtn setTitleColor:[UIColor whiteColor] forState:UIControlStateNormal];
+        [registerBtn setTitleColor:LMH_COLOR_GRAY forState:UIControlStateNormal];
         [registerBtn.titleLabel setFont:FONT(16)];
         [registerBtn addTarget:self action:@selector(registerBtnPressed) forControlEvents:UIControlEventTouchUpInside];
         _registerBtn = registerBtn;
@@ -328,27 +326,11 @@
 
 - (void)findBackPsw
 {
-//    kata_EmailFindBackPwdViewController *findbackVC = [[kata_EmailFindBackPwdViewController alloc] initWithNibName:nil bundle:nil];
-//    findbackVC.navigationController = self.navigationController;
-//    [self.navigationController pushViewController:findbackVC animated:YES];
-    
-    
-//    UIAlertView *hotLineAlertView =[[UIAlertView alloc]
-//                                    initWithTitle:@"联系客服，找回密码"
-//                                    message:[[NSUserDefaults standardUserDefaults] objectForKey:@"service_phone"]
-//                                    delegate:self
-//                                    cancelButtonTitle:@"取消"
-//                                    otherButtonTitles:@"拨打", nil];
-//    hotLineAlertView.tag = 666666;
-//    
-//    [hotLineAlertView show];
-    
     //进入客服
 //    LMHContectServiceViewController *contect = [[LMHContectServiceViewController alloc]init];
 //    contect.navigationController = self.navigationController;
 //    self.hidesBottomBarWhenPushed = YES;
 //    [self.navigationController pushViewController:contect animated:YES];
-    
     
     //忘记密码界面
     LMHForgetPasswordViewController *forgetPasswordController = [[LMHForgetPasswordViewController alloc]init];
@@ -364,9 +346,8 @@
     
     if (tag == 666666) {
         if (buttonIndex == 1) {
-            
-            NSURL *hotLineURL = [NSURL URLWithString:[NSString stringWithFormat:@"tel://%@", [[NSUserDefaults standardUserDefaults] objectForKey:@"service_phone"]]];
-            [[UIApplication sharedApplication] openURL:hotLineURL];
+            NSString *telStr = [NSString stringWithFormat:@"tel://%@", [[NSUserDefaults standardUserDefaults] objectForKey:@"service_phone"]];
+            [[UIApplication sharedApplication] openURL:[NSURL URLWithString:telStr]];
         }
     }
 }
@@ -398,21 +379,11 @@
 - (void)updateUserInformation:(NSDictionary *)userData
 {
     NSMutableDictionary *userInfo = [[NSMutableDictionary alloc] initWithDictionary:userData];
-    if (ThirdUsername) {
-        [userInfo setObject:@"" forKey:@"username"];
-        [userInfo setObject:@"false" forKey:@"rememberPsw"];
-    }else{
+    if (!ThirdUsername) {
         [userInfo setObject:self.usernameField.text?self.usernameField.text:[NSNull null] forKey:@"username"];
-        [userInfo setObject:self.rememberPswCBox.checked?@"true":@"false" forKey:@"rememberPsw"];
     }
     
     [[kata_UserManager sharedUserManager] updateUserInfo:userInfo];
-    
-    if (self.rememberPswCBox.checked) {
-        [[kata_UserManager sharedUserManager] savePsw:self.passwordField.text];
-    } else {
-        [[kata_UserManager sharedUserManager] savePsw:nil];
-    }
     
     [self performSelectorOnMainThread:@selector(hideLoginBoard) withObject:nil waitUntilDone:YES];
     if (self.loginDelegate && [self.loginDelegate respondsToSelector:@selector(didLogin)]) {

@@ -26,6 +26,7 @@
 @property (nonatomic,strong) NSNumber *sell_time;
 @property (nonatomic,strong) NSArray *activity;
 @property (nonatomic,strong) NSArray *seckill_list;
+@property (nonatomic,strong) NSArray *wap_ad_list;
 @property (nonatomic,strong) NSArray *event_list;
 @property (nonatomic,strong) NSArray *event_goods;
 @property (nonatomic,strong) NSArray *product_hot_list;
@@ -35,6 +36,10 @@
 @property (nonatomic,strong) NSArray *category_list;
 @property (nonatomic,strong) NSNumber *total_count;
 @property (nonatomic,strong) NSString *brandBanner;
+@property (nonatomic,strong) NSString *app_cache_secret;
+@property (nonatomic,strong) NSArray *class_list;
+@property (nonatomic,strong) NSArray *campaign_list;
+
 @end
 
 
@@ -109,6 +114,61 @@
 @property (nonatomic,strong) NSString *activity_image_w;
 @property (nonatomic,strong) NSString *activity_image_h;
 
+@property (nonatomic,strong) NSString *age;
+@property (nonatomic,strong) NSString *tag_url;
+
 @end
 
+
+@interface FiterVO : NSObject
+
++ (FiterVO *)FiterVOWithDictionary:(NSDictionary *)dictionary;
++ (NSArray *)FiterVOListWithArray:(NSArray *)array;
+
+- (id)initWithDictionary:(NSDictionary *)dictionary;
+
+@property (nonatomic,strong) NSString *name;
+@property (nonatomic,strong) NSString *list_name;
+@property (nonatomic,strong) NSArray *list_array;
+
+@end
+
+@interface FiterSonVO : NSObject
+
++ (NSArray *)FiterSonVOListWithArray:(NSArray *)array withName:(NSString *)name;
++ (FiterSonVO *)FiterSonVOWithDictionary:(NSDictionary *)dictionary withName:(NSString *)name;
+- (id)initWithDictionary:(NSDictionary *)dictionary withName:(NSString *)name;
+
+@property (nonatomic,strong) NSString *id_name;
+@property (nonatomic,strong) NSString *title;
+@property (nonatomic,strong) NSNumber *list_id;
+@property (nonatomic,strong) NSNumber *pid;
+@property (nonatomic,strong) NSArray *list_son;
+@property (nonatomic,strong) NSNumber *is_chcek;
+
+@end
+
+@interface CampaignVO : NSObject
+
++ (NSArray *)CampaignVOListWithArray:(NSArray *)array;
++ (CampaignVO *)CampaignVOWithDictionary:(NSDictionary *)dictionary;
+- (id)initWithDictionary:(NSDictionary *)dictionary;
+
+@property (nonatomic,strong) NSNumber *comment_count;
+@property (nonatomic,strong) NSArray *campaign_goods_list;
+@property (nonatomic,strong) NSString *topic_ios;
+@property (nonatomic,strong) NSString *buyer_img;
+@property (nonatomic,strong) NSString *campaign_name;
+@property (nonatomic,strong) NSString *campaign_goods_count;
+@property (nonatomic,strong) NSString *buyer_url;
+@property (nonatomic,strong) NSNumber *campaign_id;
+@property (nonatomic,strong) NSArray *topic_title;
+@property (nonatomic,strong) NSString *title;
+@property (nonatomic,strong) NSString *weixin;
+@property (nonatomic,strong) NSNumber *like_count;
+@property (nonatomic,strong) NSString *buyer;
+@property (nonatomic,strong) NSString *brand_logo;
+@property (nonatomic,strong) NSString *weixin_text;
+
+@end
 

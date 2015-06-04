@@ -16,7 +16,6 @@
 + (NSArray *)CartBrandVOListWithArray:(NSArray *)array;
 
 - (id)initWithDictionary:(NSDictionary *)dictionary;
-- (NSString *)description;
 
 @property(nonatomic, retain)NSString *event_title;
 @property(nonatomic, retain)NSNumber *brand_id;

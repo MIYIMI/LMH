@@ -69,7 +69,7 @@
         [self addSubview:styleLabel];
         
         UIImageView *imgView1 = [[UIImageView alloc] initWithFrame:CGRectMake(0, th, ScreenW/2, leftViewH)];
-        [imgView1 sd_setImageWithURL:[NSURL URLWithString:vo1.Pic] placeholderImage:[UIImage imageNamed:@"place_3"]];
+        [imgView1 sd_setImageWithURL:[NSURL URLWithString:vo1.Pic] placeholderImage:nil];
         [self addSubview:imgView1];
         [imgViewArray addObject:imgView1];
         UIView *actView1 = [[UIView alloc] initWithFrame:imgView1.frame];
@@ -81,7 +81,7 @@
 
         UIImageView *imgView2 = [[UIImageView alloc] initWithFrame:CGRectMake(ScreenW/2, th+leftViewH/2, ScreenW/2, leftViewH/2-1)];
         [self addSubview:imgView2];
-        [imgView2 sd_setImageWithURL:[NSURL URLWithString:vo2.Pic] placeholderImage:[UIImage imageNamed:@"place_3"]];
+        [imgView2 sd_setImageWithURL:[NSURL URLWithString:vo2.Pic] placeholderImage:nil];
         [imgViewArray addObject:imgView2];
         UIView *actView2 = [[UIView alloc] initWithFrame:imgView2.frame];
         [actViewArray addObject:actView2];
@@ -91,7 +91,7 @@
         [actView2 addGestureRecognizer:tap2];
         
         UIImageView *imgView3 = [[UIImageView alloc] initWithFrame:CGRectMake(ScreenW/2, th+leftViewH/2, ScreenW/2, leftViewH/2-1)];
-        [imgView3 sd_setImageWithURL:[NSURL URLWithString:vo3.Pic] placeholderImage:[UIImage imageNamed:@"place_3"]];
+        [imgView3 sd_setImageWithURL:[NSURL URLWithString:vo3.Pic] placeholderImage:nil];
         [self addSubview:imgView3];
         [imgViewArray addObject:imgView3];
         UIView *actView3 = [[UIView alloc] initWithFrame:imgView3.frame];
@@ -132,11 +132,12 @@
             act3.frame = CGRectMake(ScreenW/2, th, ScreenW/2, leftViewH);
             img3.frame = CGRectMake(ScreenW/2, th, ScreenW/2, leftViewH);
         }
-        [img1 sd_setImageWithURL:[NSURL URLWithString:vo1.Pic] placeholderImage:[UIImage imageNamed:@"place_3"]];
-        [img2 sd_setImageWithURL:[NSURL URLWithString:vo2.Pic] placeholderImage:[UIImage imageNamed:@"place_3"]];
-        [img3 sd_setImageWithURL:[NSURL URLWithString:vo3.Pic] placeholderImage:[UIImage imageNamed:@"place_3"]];
+        [img1 sd_setImageWithURL:[NSURL URLWithString:vo1.Pic] placeholderImage:nil];
+        [img2 sd_setImageWithURL:[NSURL URLWithString:vo2.Pic] placeholderImage:nil];
+        [img3 sd_setImageWithURL:[NSURL URLWithString:vo3.Pic] placeholderImage:nil];
     }
 }
+
 - (void)tapClick:(UITapGestureRecognizer *)recognize
 {
     NSInteger tag = recognize.view.tag - 10001;

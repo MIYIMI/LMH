@@ -42,6 +42,6 @@ typedef enum {
 - (BOOL)setTags:(NSArray *)aTag error:(NSError **)error;
 - (NSString *)sendMessage:(NSData *)body error:(NSError **)error;
 
-- (void)skipVC;
+- (void)pushVC;
 
 @end

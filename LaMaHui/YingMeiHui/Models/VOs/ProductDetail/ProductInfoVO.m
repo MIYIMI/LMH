@@ -45,6 +45,8 @@
 @synthesize type;
 @synthesize seckill_id;
 @synthesize is_start_buy;
+@synthesize check_color_id;
+@synthesize check_size_id;
 
 + (ProductInfoVO *)ProductInfoVOWithJSONString:(NSString *)jsonString usingEncoding:(NSStringEncoding)stringEncoding error:(NSError **)error
 {
@@ -169,7 +171,7 @@
             self.commentsNum = [dictionary objectForKey:@"comments_count"];
         }
         
-        if (nil != [dictionary objectForKey:@"event_arr"] && ![[dictionary objectForKey:@"more_detailevent_arr_img"] isEqual:[NSNull null]] && [[dictionary objectForKey:@"event_arr"] isKindOfClass:[NSArray class]]) {
+        if (nil != [dictionary objectForKey:@"event_arr"] && ![[dictionary objectForKey:@"event_arr"] isEqual:[NSNull null]] && [[dictionary objectForKey:@"event_arr"] isKindOfClass:[NSArray class]]) {
             self.eventArray = [dictionary objectForKey:@"event_arr"];
         }
         
@@ -207,6 +209,14 @@
         
         if (nil != [dictionary objectForKey:@"is_start_buy"] && ![[dictionary objectForKey:@"is_start_buy"] isEqual:[NSNull null]]) {
             self.is_start_buy = [dictionary objectForKey:@"is_start_buy"];
+        }
+        
+        if (nil != [dictionary objectForKey:@"check_color_id"] && ![[dictionary objectForKey:@"check_color_id"] isEqual:[NSNull null]]) {
+            self.check_color_id = [dictionary objectForKey:@"check_color_id"];
+        }
+        
+        if (nil != [dictionary objectForKey:@"check_size_id"] && ![[dictionary objectForKey:@"check_size_id"] isEqual:[NSNull null]]) {
+            self.check_size_id = [dictionary objectForKey:@"check_size_id"];
         }
     }
     

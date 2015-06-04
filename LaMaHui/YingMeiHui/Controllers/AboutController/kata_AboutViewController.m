@@ -36,7 +36,7 @@
     [super viewDidLoad];
     [self createUI];
     [self.contentView setFrame:self.view.frame];
-    [self.contentView setBackgroundColor:[UIColor whiteColor]];
+    [self.contentView setBackgroundColor:LMH_COLOR_BACK];
     
     if(!IOS_7){
         CGRect frame = self.contentView.frame;
@@ -67,27 +67,34 @@
 
 - (void)createUI
 {
-    UIImageView *logoImage = [[UIImageView alloc] initWithImage:[UIImage imageNamed:@"about_logo_banner"]];
-    [logoImage setFrame:CGRectMake(40,30,ScreenW-80,(ScreenW-80)*62/403)];
+    UIImageView *logoImage = [[UIImageView alloc] initWithImage:[UIImage imageNamed:@"about_logo_banner_2"]];
+    [logoImage setFrame:CGRectMake(60,45,ScreenW-120,(ScreenW-120)*40/205)];
     
-    UIView *introBg = [[UIView alloc] initWithFrame:CGRectMake(20, CGRectGetMaxY(logoImage.frame) + 20, ScreenW-40, 160)];
+    UIView *introBg = [[UIView alloc] initWithFrame:CGRectMake(30, CGRectGetMaxY(logoImage.frame) + 30, ScreenW-60, 110)];
     [introBg setBackgroundColor:[UIColor whiteColor]];
     [introBg.layer setBorderColor:[UIColor colorWithRed:0.86 green:0.86 blue:0.86 alpha:1].CGColor];
     [introBg.layer setBorderWidth:0.5];
     
     UILabel *introLbl = [[UILabel alloc] initWithFrame:CGRectMake(10, 0, CGRectGetWidth(introBg.frame) - 20, CGRectGetHeight(introBg.frame))];
-    [introLbl setFont:[UIFont systemFontOfSize:15.0]];
+    [introLbl setFont:[UIFont systemFontOfSize:12.3]];
     [introLbl setTextColor:[UIColor colorWithRed:0.4 green:0.4 blue:0.4 alpha:1]];
-    [introLbl setText:@"\t辣妈汇致力成为“最专业的辣妈意见领袖”，为妈妈打造一个提供最优质产品及购物建议的时尚特卖平台，为千万妈妈找回美丽、优雅、自信的自己。\n\n\t辣妈汇，“因为懂你，所以专业”。辣妈汇，更懂辣妈的特卖网站。"];
+    [introLbl setText:@"     辣妈汇——全国最大的辣妈宝贝时尚特卖平台，隶属杭州辣妈汇电子商务有限公司，坚持提供安全、时尚的辣妈婴童品牌特卖，做辣妈&宝贝美丽时尚的缔造者！"];
     [introLbl setBackgroundColor:[UIColor clearColor]];
-    [introLbl setTextAlignment:NSTextAlignmentCenter];
+    [introLbl setTextAlignment:NSTextAlignmentLeft];
     [introLbl setNumberOfLines:0];
     [introBg addSubview:introLbl];
     
-    UILabel *copyrightLbl = [[UILabel alloc] initWithFrame:CGRectMake(0, CGRectGetHeight(self.contentView.frame) - 80, CGRectGetWidth(UIScreen.mainScreen.bounds), 50)];
-    copyrightLbl.font = [UIFont systemFontOfSize:15];
+    // 调整行间距
+    NSMutableAttributedString *attributedString = [[NSMutableAttributedString alloc]initWithString:introLbl.text];;
+    NSMutableParagraphStyle *paragraphStyle = [[NSMutableParagraphStyle alloc]init];
+    [paragraphStyle setLineSpacing:5];
+    [attributedString addAttribute:NSParagraphStyleAttributeName value:paragraphStyle range:NSMakeRange(0, introLbl.text.length)];
+    introLbl.attributedText = attributedString;
+    
+    UILabel *copyrightLbl = [[UILabel alloc] initWithFrame:CGRectMake(0, CGRectGetHeight(self.contentView.frame) - 70, CGRectGetWidth(UIScreen.mainScreen.bounds), 50)];
+    copyrightLbl.font = [UIFont systemFontOfSize:12];
     copyrightLbl.backgroundColor = [UIColor clearColor];
-    copyrightLbl.textColor = LMH_COLOR_GRAY;
+    copyrightLbl.textColor = LMH_COLOR_LIGHTGRAY;
     copyrightLbl.textAlignment = NSTextAlignmentCenter;
     copyrightLbl.lineBreakMode = NSLineBreakByCharWrapping;
     copyrightLbl.numberOfLines = 2;

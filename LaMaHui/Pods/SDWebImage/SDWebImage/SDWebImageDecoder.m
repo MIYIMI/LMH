@@ -25,7 +25,7 @@
     CGColorSpaceRef colorSpace = CGColorSpaceCreateDeviceRGB();
     CGBitmapInfo bitmapInfo = CGImageGetBitmapInfo(imageRef);
 
-    NSInteger infoMask = (bitmapInfo & kCGBitmapAlphaInfoMask);
+    int infoMask = (bitmapInfo & kCGBitmapAlphaInfoMask);
     BOOL anyNonAlpha = (infoMask == kCGImageAlphaNone ||
             infoMask == kCGImageAlphaNoneSkipFirst ||
             infoMask == kCGImageAlphaNoneSkipLast);

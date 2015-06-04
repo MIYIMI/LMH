@@ -8,11 +8,11 @@
 
 #import <UIKit/UIKit.h>
 
-@class OrderEventVO;
+@class OrderListVO;
 
 @protocol KTOrderTableViewCellDelegate <NSObject>
 
-- (void)orderBtnClick:(NSInteger)btnType andIndex:(NSIndexPath *)indexPath andEventVO:(OrderEventVO*)eventVO;
+- (void)btnVO:(OrderListVO*)orderVO andTag:(NSInteger)tag;
 
 @end
 

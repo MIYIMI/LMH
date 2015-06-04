@@ -53,5 +53,7 @@
 @property(nonatomic, retain) NSString *type;
 @property(nonatomic, retain) NSNumber *seckill_id;
 @property(nonatomic, retain) NSNumber *is_start_buy;
+@property(nonatomic, retain) NSNumber *check_color_id;
+@property(nonatomic, retain) NSNumber *check_size_id;
 
 @end

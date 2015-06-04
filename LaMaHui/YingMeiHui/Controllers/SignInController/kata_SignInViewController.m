@@ -96,8 +96,6 @@
 - (void)viewDidAppear:(BOOL)animated
 {
     [super viewDidAppear:animated];
-    self.hidesBottomBarWhenPushed = YES;
-    [[(kata_AppDelegate *)[[UIApplication sharedApplication] delegate] deckController] setPanningMode:IIViewDeckNoPanning];
 }
 
 -(void)createUI{
@@ -543,7 +541,6 @@
             NSString *httpStr = appRecommend[i][@"app_url_ios"];
             NSString *itmsStr = [httpStr stringByReplacingOccurrencesOfString:@"http://" withString:@"itms-apps://"];
             [[UIApplication sharedApplication] openURL:[NSURL URLWithString:itmsStr]];
-//            [[UIApplication sharedApplication] openURL:[NSURL URLWithString:@"itms-apps://itunes.apple.com/cn/app/jie-zou-da-shi/id493901993?mt=8"]];
         }
     }
     
@@ -683,18 +680,10 @@
     stateHud.labelFont = [UIFont systemFontOfSize:13.0f];
     [stateHud show:YES];
     [stateHud hide:YES afterDelay:3.0];
-
 }
 
 - (void)loadHUD
 {
-//    if (!stateHud) {
-//        stateHud = [[MBProgressHUD alloc] initWithView:self.view];
-//        stateHud.delegate = self;
-//        [self.view addSubview:stateHud];
-//    }
-//    stateHud.mode = MBProgressHUDModeIndeterminate;
-//    [stateHud show:YES];
     if (!loading) {
         loading = [[Loading alloc] initWithFrame:CGRectMake(0, 0, 180, 100) andName:[NSString stringWithFormat:@"loading.gif"]];
         loading.center = self.contentView.center;
@@ -705,9 +694,6 @@
 }
 
 - (void)hideHUD{
-//    if (stateHud) {
-//        [stateHud hide:YES afterDelay:0];
-//    }
     if (loading) {
         [loading stop];
     }

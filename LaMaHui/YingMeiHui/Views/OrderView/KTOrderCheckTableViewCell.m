@@ -40,7 +40,7 @@
         if (!_contentLbl) {
             _contentLbl = [[UILabel alloc] initWithFrame:CGRectMake(w - 162, 0, 150, 39)];
             [_contentLbl setTextColor:LMH_COLOR_SKIN];
-            [_contentLbl setFont:LMH_FONT_13];
+            [_contentLbl setFont:LMH_FONT_15];
             [_contentLbl setTextAlignment:NSTextAlignmentRight];
             _contentLbl.backgroundColor = [UIColor whiteColor];
             [self addSubview:_contentLbl];

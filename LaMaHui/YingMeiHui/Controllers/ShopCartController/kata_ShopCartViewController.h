@@ -10,6 +10,7 @@
 #import "KTShopCartTableViewCell.h"
 #import "kata_LoginViewController.h"
 #import "Loading.h"
+#import "PopSkuView.h"
 
 @protocol shopCartDelegate <NSObject>
 
@@ -23,7 +24,8 @@
 <
 KTShopCartTableViewCellDelegate,
 UIAlertViewDelegate,
-LoginDelegate
+LoginDelegate,
+PopSkuViewDelegate
 >
 @property (assign, nonatomic) id<shopCartDelegate> cartDelegate;
 #if LMH_Main_Page_Update_logic

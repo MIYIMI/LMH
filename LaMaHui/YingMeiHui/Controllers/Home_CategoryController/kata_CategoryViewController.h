@@ -7,7 +7,6 @@
 //
 
 #import "FTStatefulTableViewController.h"
-#import "kata_IndexAdvFocusViewController.h"
 #import "KTBrandProductListCell.h"
 #import "AdvVO.h"
 #import "LMH_Config.h"
@@ -15,7 +14,7 @@
 #import "HomeSeckillCell.h"
 #import "XLCycleScrollView.h"
 
-@interface kata_CategoryViewController : FTStatefulTableViewController <KATAFocusViewControllerDelegate, KTBrandProductListCellDelegate,UIGestureRecognizerDelegate,LoginDelegate,XLCycleScrollViewDatasource,XLCycleScrollViewDelegate>
+@interface kata_CategoryViewController : FTStatefulTableViewController <KTBrandProductListCellDelegate,UIGestureRecognizerDelegate,LoginDelegate,XLCycleScrollViewDatasource,XLCycleScrollViewDelegate>
 
 - (id)initWithMenuID:(NSInteger)menuid andParentID:(NSInteger)parentid andTitle:(NSString *)title;
 

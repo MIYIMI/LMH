@@ -27,17 +27,15 @@
         loadingImageView.frame = CGRectMake(0, 0, CGRectGetWidth(frame), CGRectGetHeight(frame));
         [self addSubview:loadingImageView];
         [self bringSubviewToFront:loadingImageView];
-        loadingImageView.hidden = YES;
-        
         }
     return self;
 }
 
 - (void)stop{
-    loadingImageView.hidden = YES;
+    self.hidden = YES;
 }
 
 - (void)start{
-    loadingImageView.hidden = NO;
+    self.hidden = NO;
 }
 @end

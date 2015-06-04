@@ -18,7 +18,6 @@
 #import "kata_MyViewController.h"
 #import "kata_ShopCartViewController.h"
 #import "KTLimitListRequest.h"
-#import "kata_IndexAdvFocusViewController.h"
 #import "AloneProductCellTableViewCell.h"
 #import "UIImageView+WebCache.h"
 #import "HomeVO.h"
@@ -26,7 +25,6 @@
 #import "LMH_Config.h"
 #import "kata_UserManager.h"
 #import "AdvListVO.h"
-#import "kata_DescribeViewController.h"
 #import "kata_WebViewController.h"
 
 #define PAGERSIZE           20
@@ -134,8 +132,6 @@
 
 -(void)viewDidAppear:(BOOL)animated{
     [super viewDidAppear:animated];
-    self.hidesBottomBarWhenPushed = YES;
-    [[(kata_AppDelegate *)[[UIApplication sharedApplication] delegate] deckController] setPanningMode:IIViewDeckNoPanning];
 }
 
 - (void)didReceiveMemoryWarning
@@ -163,7 +159,7 @@
 {
     if (listVO.brandBanner.length > 4) {
         [_headerView setFrame:CGRectMake(0, 0, ScreenW, ADVFOCUSHEIGHT)];
-        [_headerView sd_setImageWithURL:[NSURL URLWithString:listVO.brandBanner] placeholderImage:LOCAL_IMG(@"logoph")];
+        [_headerView sd_setImageWithURL:[NSURL URLWithString:listVO.brandBanner] placeholderImage:nil];
     }
     
     [self.tableView setTableHeaderView:_headerView];

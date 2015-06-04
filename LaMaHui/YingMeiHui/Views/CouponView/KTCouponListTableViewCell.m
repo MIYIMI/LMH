@@ -25,6 +25,8 @@
     UILabel *_conditionLbl;
     UILabel *_limitbl;
     UILabel *alb;
+    
+    UILabel *overduelabel;
 }
 
 @end
@@ -63,6 +65,7 @@
     _cellState = cellState;
     
     if (_cellState) {
+        _couponInfoBgView.backgroundColor = [UIColor cyanColor];
         _couponInfoBgView.image = [UIImage imageNamed:@"valid_2"];
         _couponPriceBgView.image = [UIImage imageNamed:@"valid_price_2"];
         [_nameLbl setTextColor:[UIColor colorWithRed:0.4 green:0.4 blue:0.4 alpha:1]];
@@ -72,15 +75,18 @@
         [_conditionLbl setTextColor:[UIColor whiteColor]];
         [_limitbl setTextColor:[UIColor grayColor]];
         [alb setTextColor:[UIColor whiteColor]];
+        overduelabel.hidden = YES;
     }else{
-        _couponInfoBgView.image = [UIImage imageNamed:@"invalid"];
+        _couponInfoBgView.image = [UIImage imageNamed:@"valid_2"];
+//        _couponInfoBgView.backgroundColor = [UIColor whiteColor];
         _couponPriceBgView.image = [UIImage imageNamed:@"invalid_price"];
-        [_nameLbl setTextColor:[UIColor whiteColor]];
-        [_useDateLbl setTextColor:[UIColor whiteColor]];
+        [_nameLbl setTextColor:[UIColor colorWithRed:0.4 green:0.4 blue:0.4 alpha:1]];
+        [_useDateLbl setTextColor:[UIColor grayColor]];
         [_moneyLbl setTextColor:[UIColor whiteColor]];
         [_conditionLbl setTextColor:[UIColor whiteColor]];
-        [_limitbl setTextColor:[UIColor whiteColor]];
+        [_limitbl setTextColor:[UIColor grayColor]];
         [alb setTextColor:[UIColor whiteColor]];
+        overduelabel.hidden = NO;
 
     }
 }
@@ -119,7 +125,7 @@
             [_nameLbl setBackgroundColor:[UIColor clearColor]];
 //            _nameLbl.backgroundColor = [UIColor redColor];
             [_nameLbl setTextAlignment:NSTextAlignmentLeft];
-            [_nameLbl setFont:[UIFont systemFontOfSize:17.0]];
+            [_nameLbl setFont:LMH_FONT_15];
             
             [_couponInfoBgView addSubview:_nameLbl];
         }
@@ -145,9 +151,10 @@
             [_couponInfoBgView addSubview:_useDateLbl];
         }
         NSDateFormatter *formatter = [[NSDateFormatter alloc] init];
-        [formatter setDateStyle:NSDateFormatterMediumStyle];
-        [formatter setTimeStyle:NSDateFormatterShortStyle];
-        [formatter setDateFormat:@"YYYY.MM.dd"];
+        [formatter setDateFormat:@"yyyy.MM.dd"];
+        
+        _CouponData.end_time = [NSNumber numberWithDouble:1451491200];
+        
         NSDate *begin = [NSDate dateWithTimeIntervalSince1970:[_CouponData.begin_time longLongValue]];
         NSDate *end = [NSDate dateWithTimeIntervalSince1970:[_CouponData.end_time longLongValue]];
         NSString *beginTimespStr = [formatter stringFromDate:begin];
@@ -157,24 +164,15 @@
 
         //优惠券金额
         if (!_moneyLbl) {
-            alb = [[UILabel alloc] initWithFrame:CGRectMake(18, 20, CGRectGetWidth(_couponPriceBgView.frame) / 2 - 20, 10)];
-            alb.text = @"￥";
-            [alb setBackgroundColor:[UIColor clearColor]];
-            [alb setTextAlignment:NSTextAlignmentCenter];
-            [alb setFont:[UIFont boldSystemFontOfSize:27.0]];
-            [alb setNumberOfLines:1];
-            [alb setLineBreakMode:NSLineBreakByTruncatingTail];
-            [_couponPriceBgView addSubview:alb];
-            
-            _moneyLbl = [[UILabel alloc] initWithFrame:CGRectMake(CGRectGetMaxX(alb.frame), 14, CGRectGetWidth(_couponPriceBgView.frame) / 2, 20)];
+            _moneyLbl = [[UILabel alloc] initWithFrame:CGRectMake(0, 14, CGRectGetWidth(_couponPriceBgView.frame), 20)];
             [_moneyLbl setBackgroundColor:[UIColor clearColor]];
-            [_moneyLbl setTextAlignment:0];
+            [_moneyLbl setTextAlignment:NSTextAlignmentCenter];
             [_moneyLbl setFont:[UIFont boldSystemFontOfSize:27.0]];
             [_moneyLbl setNumberOfLines:1];
             [_moneyLbl setLineBreakMode:NSLineBreakByTruncatingTail];
             [_couponPriceBgView addSubview:_moneyLbl];
         }
-        [_moneyLbl setText:[NSString stringWithFormat:@"%0.0f", [_CouponData.coupon_amount floatValue]]];
+        [_moneyLbl setText:[NSString stringWithFormat:@"￥%0.0f", [_CouponData.coupon_amount floatValue]]];
         
         //优惠券使用规则
         if (!_conditionLbl) {
@@ -189,8 +187,26 @@
         }
             [_conditionLbl setText:_CouponData.coupon_rule];
       
+        // 已过期标志
+        if(!overduelabel) {
+            overduelabel = [[UILabel alloc] init];
+            overduelabel.frame = CGRectMake(0, 0, _couponPriceBgView.frame.size.width/5*4, _couponPriceBgView.frame.size.height/16*5);
+            overduelabel.backgroundColor = [UIColor clearColor];
+            [self.contentView addSubview:overduelabel];
+            overduelabel.center = _couponPriceBgView.center;
+            overduelabel.transform = CGAffineTransformRotate(overduelabel.transform, -M_PI_4/3);
+            overduelabel.layer.borderWidth = 1;
+            overduelabel.layer.borderColor = [[UIColor grayColor] CGColor];
+            overduelabel.alpha = 0.5;
+            overduelabel.text = @"已过期";
+            overduelabel.textColor = [UIColor grayColor];
+            overduelabel.textAlignment = 1;
+            [overduelabel setFont:[UIFont fontWithName:@"Helvetica-Bold" size:17]];
+            
+
+        }
         //优惠券状态
-        self.CellState = [_CouponData.is_valid boolValue];
+        self.cellState = [_CouponData.is_valid boolValue];
     }
 }
 

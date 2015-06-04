@@ -20,7 +20,7 @@
         // Initialization code
         imageView = [[UIImageView alloc] init];
         [self addSubview:imageView];
-        defaultImage = [UIImage imageNamed:@"logoph.png"];
+//        defaultImage = [UIImage imageNamed:@"logoph.png"];
     }
     return self;
 }

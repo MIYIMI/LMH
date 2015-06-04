@@ -104,8 +104,6 @@ static LMH_GeXinAPNSTool *gexinApnsTool = nil;
         } else {
             _sdkStatus = SdkStatusStarting;
         }
-        
-//        [_viewController updateStatusView:self];
     }
 }
 
@@ -125,8 +123,6 @@ static LMH_GeXinAPNSTool *gexinApnsTool = nil;
 - (BOOL)checkSdkInstance
 {
     if (!_gexinPusher) {
-//        UIAlertView *alertView = [[UIAlertView alloc] initWithTitle:@"错误" message:@"SDK未启动" delegate:nil cancelButtonTitle:nil otherButtonTitles:@"确定", nil];
-//        [alertView show];
         return NO;
     }
     return YES;
@@ -176,9 +172,7 @@ static LMH_GeXinAPNSTool *gexinApnsTool = nil;
     NSData *payload = [_gexinPusher retrivePayloadById:payloadId];
     NSString *payloadMsg = nil;
     if (payload) {
-        payloadMsg = [[NSString alloc] initWithBytes:payload.bytes
-                                              length:payload.length
-                                            encoding:NSUTF8StringEncoding];
+        payloadMsg = [[NSString alloc] initWithBytes:payload.bytes length:payload.length encoding:NSUTF8StringEncoding];
     }
     
     if (payloadMsg.length > 0) {
@@ -191,29 +185,24 @@ static LMH_GeXinAPNSTool *gexinApnsTool = nil;
         
     }else if(_adv){
         LMHLog(@" UIApplicationStateInactive| or background");
-        [self skipVC];
+        [[LMHUIManager sharedUIManager] performSelector:@selector(skipVC:) withObject:_adv afterDelay:0];
     }
 }
 
-- (void)skipVC{
+- (void)pushVC{
     //秒杀本地通知
     NSNumber *def = [[NSUserDefaults standardUserDefaults] objectForKey:@"seckill"];
+    
+    AdvVO *adv = [[AdvVO alloc] init];
     if ([def boolValue]) {
-        _adv = [[AdvVO alloc] init];
-        _adv.Type = @101;
+        adv.Type = @101;
         [[NSUserDefaults standardUserDefaults] setObject:@NO forKey:@"seckill"];
     }
     UIViewController *currentViewController = [[LMHUIManager sharedUIManager] getCurrentDisplayViewController];
     if([currentViewController isKindOfClass:[LimitedSeckillViewController class]]){
         return;
     }
-    [[LMHUIManager sharedUIManager] performSelector:@selector(skipVC:) withObject:_adv afterDelay:1];
-}
-
-- (void)GexinSdkDidSendMessage:(NSString *)messageId result:(NSInteger)result {
-    // [4-EXT]:发送上行消息结果反馈
-//    NSString *record = [NSString stringWithFormat:@"Received sendmessage:%@ result:%zi", messageId, result];
-//    [_viewController logMsg:record];
+    [[LMHUIManager sharedUIManager] performSelector:@selector(skipVC:) withObject:adv afterDelay:1];
 }
 
 - (void)GexinSdkDidOccurError:(NSError *)error
